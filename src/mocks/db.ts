@@ -1,5 +1,7 @@
 import { DEMO_EMAIL, DEMO_PASSWORD } from '../config/demoAccount';
 import type { User } from '../types/auth';
+import type { Account, Transaction } from '../types/banking';
+import { createAccounts, createTransactions } from './bankingData';
 
 export { DEMO_EMAIL, DEMO_PASSWORD };
 export const MAX_FAILED_ATTEMPTS = 3;
@@ -21,6 +23,8 @@ interface StoredSession {
 interface Database {
   users: StoredUser[];
   sessions: Map<string, StoredSession>;
+  accounts: Account[];
+  transactions: Transaction[];
   failedAttempts: number;
   lockedUntil: number | null;
 }
@@ -38,6 +42,8 @@ function createDatabase(): Database {
       },
     ],
     sessions: new Map(),
+    accounts: createAccounts(),
+    transactions: createTransactions(Date.now()),
     failedAttempts: 0,
     lockedUntil: null,
   };
@@ -52,8 +58,8 @@ function readPersistedDatabase(): Database | null {
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
 
-    const data = JSON.parse(raw) as PersistedDatabase;
-    return { ...data, sessions: new Map(data.sessions) };
+    const data = JSON.parse(raw) as Partial<PersistedDatabase>;
+    return { ...createDatabase(), ...data, sessions: new Map(data.sessions ?? []) };
   } catch {
     return null;
   }

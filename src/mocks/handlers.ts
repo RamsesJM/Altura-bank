@@ -1,5 +1,6 @@
 import { delay, http, HttpResponse } from 'msw';
 import type { ApiErrorBody, Session } from '../types/auth';
+import { EXCHANGE_RATE } from './bankingData';
 import {
   createToken,
   db,
@@ -11,6 +12,8 @@ import {
 } from './db';
 
 const INVALID_CREDENTIALS_MESSAGE = 'Incorrect email or password.';
+const DEFAULT_TRANSACTION_LIMIT = 20;
+const MAX_TRANSACTION_LIMIT = 50;
 
 async function simulateLatency() {
   if (import.meta.env.MODE === 'test') return;
@@ -51,6 +54,12 @@ function findActiveSession(request: Request) {
   }
 
   return { token, session };
+}
+
+function readLimit(request: Request): number {
+  const value = Number(new URL(request.url).searchParams.get('limit'));
+  if (!Number.isInteger(value) || value <= 0) return DEFAULT_TRANSACTION_LIMIT;
+  return Math.min(value, MAX_TRANSACTION_LIMIT);
 }
 
 function releaseExpiredLock() {
@@ -154,5 +163,30 @@ export const handlers = [
     }
 
     return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.get('/api/accounts', async ({ request }) => {
+    await simulateLatency();
+    if (!findActiveSession(request)) return sessionExpired();
+
+    return HttpResponse.json({ accounts: db.accounts });
+  }),
+
+  http.get('/api/exchange-rate', async ({ request }) => {
+    await simulateLatency();
+    if (!findActiveSession(request)) return sessionExpired();
+
+    return HttpResponse.json(EXCHANGE_RATE);
+  }),
+
+  http.get('/api/transactions', async ({ request }) => {
+    await simulateLatency();
+    if (!findActiveSession(request)) return sessionExpired();
+
+    const transactions = [...db.transactions]
+      .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+      .slice(0, readLimit(request));
+
+    return HttpResponse.json({ transactions });
   }),
 ];
