@@ -21,6 +21,7 @@ afterEach(() => {
   server.resetHandlers();
   resetDb();
   sessionStorage.clear();
+  localStorage.clear();
   setAuthToken(null);
   setUnauthorizedHandler(null);
   vi.useRealTimers();
