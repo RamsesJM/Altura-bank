@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { useLocation } from 'react-router';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Alert } from '../components/Alert';
 import { BrandLogo } from '../components/BrandLogo';
 import { PasswordField } from '../components/PasswordField';
@@ -18,7 +17,7 @@ interface FieldErrors {
 
 type LoginError =
   | { type: 'credentials'; attemptsRemaining: number }
-  | { type: 'locked' }
+  | { type: 'locked'; announcedSeconds: number }
   | { type: 'message'; message: string };
 
 const CONNECTION_MESSAGE = "We couldn't connect. Please try again.";
@@ -29,8 +28,10 @@ function toLoginError(error: unknown): LoginError {
   switch (error.code) {
     case 'INVALID_CREDENTIALS':
       return { type: 'credentials', attemptsRemaining: error.attemptsRemaining ?? 0 };
-    case 'ACCOUNT_LOCKED':
-      return { type: 'locked' };
+    case 'ACCOUNT_LOCKED': {
+      const remainingMs = error.lockedUntil ? Date.parse(error.lockedUntil) - Date.now() : 0;
+      return { type: 'locked', announcedSeconds: Math.max(1, Math.ceil(remainingMs / 1000)) };
+    }
     case 'VALIDATION_ERROR':
       return { type: 'message', message: error.message };
     default:
@@ -38,14 +39,20 @@ function toLoginError(error: unknown): LoginError {
   }
 }
 
-function describeError(error: LoginError, lockRemainingMs: number): string {
+function describeError(error: LoginError, lockRemainingMs: number): ReactNode {
   switch (error.type) {
     case 'credentials': {
       const unit = error.attemptsRemaining === 1 ? 'attempt' : 'attempts';
       return `Incorrect email or password. ${error.attemptsRemaining} ${unit} remaining.`;
     }
     case 'locked':
-      return `Account temporarily locked. Try again in ${formatCountdown(lockRemainingMs)}.`;
+      return (
+        <>
+          Account temporarily locked. Try again in{' '}
+          <span aria-hidden="true">{formatCountdown(lockRemainingMs)}</span>
+          <span className="sr-only">{error.announcedSeconds} seconds</span>.
+        </>
+      );
     case 'message':
       return error.message;
   }
@@ -58,9 +65,7 @@ const highlights = [
 ];
 
 export function LoginPage() {
-  const { login } = useAuth();
-  const location = useLocation();
-  const sessionExpired = (location.state as { reason?: string } | null)?.reason === 'expired';
+  const { login, sessionExpired } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

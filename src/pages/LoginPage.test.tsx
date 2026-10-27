@@ -1,4 +1,4 @@
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import { delay, http, HttpResponse } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
@@ -90,10 +90,11 @@ describe('LoginPage', () => {
     }
 
     await waitFor(() =>
-      expect(screen.getByRole('alert')).toHaveTextContent(
-        /Account temporarily locked\. Try again in [01]:\d{2}\./,
-      ),
+      expect(screen.getByRole('alert')).toHaveTextContent('Account temporarily locked.'),
     );
+    const countdown = within(screen.getByRole('alert')).getByText(/^[01]:\d{2}$/);
+    expect(countdown).toHaveAttribute('aria-hidden', 'true');
+    expect(within(screen.getByRole('alert')).getByText(/^\d+ seconds$/)).toHaveClass('sr-only');
     expect(submitButton()).toBeDisabled();
 
     act(() => {
@@ -160,13 +161,5 @@ describe('LoginPage', () => {
     await submitWith(user, DEMO_EMAIL, DEMO_PASSWORD);
 
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/transfers'));
-  });
-
-  it('shows the expired banner when redirected after a timeout', async () => {
-    await renderLogin({ pathname: '/login', state: { reason: 'expired' } });
-
-    expect(
-      screen.getByText('Your session has expired. Please sign in again.'),
-    ).toBeInTheDocument();
   });
 });

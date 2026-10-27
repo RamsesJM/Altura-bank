@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router';
 import { setAuthToken, setUnauthorizedHandler } from '../services/apiClient';
 import * as authService from '../services/authService';
 import { readSession, writeSession } from '../services/sessionStore';
@@ -7,12 +6,12 @@ import type { Session, User } from '../types/auth';
 import { AuthContext, type AuthStatus, type LogoutReason } from './authContextValue';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const navigate = useNavigate();
   const [status, setStatus] = useState<AuthStatus>(() =>
     readSession() ? 'loading' : 'unauthenticated',
   );
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const statusRef = useRef(status);
 
   useEffect(() => {
@@ -38,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (email: string, password: string) => {
       const response = await authService.login(email, password);
+      setSessionExpired(false);
       applySession(response.user, response.session);
     },
     [applySession],
@@ -48,10 +48,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (reason === 'manual') {
         await authService.logout().catch(() => undefined);
       }
+      setSessionExpired(reason === 'expired');
       clearSession();
-      navigate('/login', { replace: true, state: reason === 'expired' ? { reason } : null });
     },
-    [clearSession, navigate],
+    [clearSession],
   );
 
   const refresh = useCallback(async () => {
@@ -89,8 +89,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [applySession, clearSession]);
 
   const value = useMemo(
-    () => ({ status, user, session, login, logout, refresh }),
-    [status, user, session, login, logout, refresh],
+    () => ({ status, user, session, sessionExpired, login, logout, refresh }),
+    [status, user, session, sessionExpired, login, logout, refresh],
   );
 
   return <AuthContext value={value}>{children}</AuthContext>;

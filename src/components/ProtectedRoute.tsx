@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
 import { FullScreenLoader } from './FullScreenLoader';
+import { SessionManager } from './SessionManager';
 
 export function ProtectedRoute() {
   const { status } = useAuth();
@@ -12,5 +13,10 @@ export function ProtectedRoute() {
     return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
   }
 
-  return <Outlet />;
+  return (
+    <>
+      <SessionManager />
+      <Outlet />
+    </>
+  );
 }

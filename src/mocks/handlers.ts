@@ -5,6 +5,7 @@ import {
   db,
   LOCKOUT_MS,
   MAX_FAILED_ATTEMPTS,
+  saveDb,
   SESSION_TTL_MS,
   toPublicUser,
 } from './db';
@@ -27,6 +28,7 @@ function sessionExpired() {
 function issueSession(token: string, userId: string): Session {
   const expiresAt = Date.now() + SESSION_TTL_MS;
   db.sessions.set(token, { userId, expiresAt });
+  saveDb();
   return { token, expiresAt: new Date(expiresAt).toISOString() };
 }
 
@@ -44,6 +46,7 @@ function findActiveSession(request: Request) {
 
   if (session.expiresAt <= Date.now()) {
     db.sessions.delete(token);
+    saveDb();
     return null;
   }
 
@@ -54,6 +57,7 @@ function releaseExpiredLock() {
   if (db.lockedUntil !== null && db.lockedUntil <= Date.now()) {
     db.lockedUntil = null;
     db.failedAttempts = 0;
+    saveDb();
   }
 }
 
@@ -92,6 +96,7 @@ export const handlers = [
 
       if (db.failedAttempts >= MAX_FAILED_ATTEMPTS) {
         db.lockedUntil = Date.now() + LOCKOUT_MS;
+        saveDb();
         return errorResponse(423, {
           code: 'ACCOUNT_LOCKED',
           message: 'Account temporarily locked.',
@@ -99,6 +104,7 @@ export const handlers = [
         });
       }
 
+      saveDb();
       return errorResponse(401, {
         code: 'INVALID_CREDENTIALS',
         message: INVALID_CREDENTIALS_MESSAGE,
@@ -142,7 +148,10 @@ export const handlers = [
     await simulateLatency();
 
     const token = readToken(request);
-    if (token) db.sessions.delete(token);
+    if (token) {
+      db.sessions.delete(token);
+      saveDb();
+    }
 
     return new HttpResponse(null, { status: 204 });
   }),

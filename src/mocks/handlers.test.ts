@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ApiErrorBody, AuthResponse, Session } from '../types/auth';
-import { DEMO_EMAIL, DEMO_PASSWORD, LOCKOUT_MS, SESSION_TTL_MS } from './db';
+import { DEMO_EMAIL, DEMO_PASSWORD, LOCKOUT_MS, restoreDb, SESSION_TTL_MS } from './db';
 
 function request(path: string, init: RequestInit = {}) {
   return fetch(new URL(path, window.location.origin), {
@@ -146,6 +146,27 @@ describe('auth API mock', () => {
 
     expect(logout.status).toBe(204);
     expect(me.status).toBe(401);
+  });
+
+  it('keeps sessions and last login after a page reload', async () => {
+    const { session } = await signIn();
+
+    restoreDb();
+    const response = await authorized('/api/auth/me', session.token);
+    const body: AuthResponse = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.user.lastLoginAt).toBeNull();
+    expect((await signIn()).user.lastLoginAt).not.toBeNull();
+  });
+
+  it('keeps the lockout after a page reload', async () => {
+    for (let i = 0; i < 3; i++) await login(DEMO_EMAIL, 'wrong');
+
+    restoreDb();
+    const response = await login(DEMO_EMAIL, DEMO_PASSWORD);
+
+    expect(response.status).toBe(423);
   });
 
   it('session expires after 5 minutes', async () => {

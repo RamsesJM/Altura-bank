@@ -8,6 +8,7 @@ export interface AuthContextValue {
   status: AuthStatus;
   user: User | null;
   session: Session | null;
+  sessionExpired: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: (reason?: LogoutReason) => Promise<void>;
   refresh: () => Promise<void>;
