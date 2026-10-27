@@ -61,7 +61,7 @@ function describeError(error: LoginError, lockRemainingMs: number): ReactNode {
 const highlights = [
   'Sessions protected with automatic sign-out',
   'Account lock after repeated failed attempts',
-  'Balances and transfers in BOB and USD',
+  'Balances and transfers in DOP and USD',
 ];
 
 export function LoginPage() {
