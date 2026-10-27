@@ -107,11 +107,11 @@ export const handlers = [
     }
 
     db.failedAttempts = 0;
-    const publicUser = toPublicUser(user);
-    user.lastLoginAt = new Date().toISOString();
+    user.lastLoginAt = user.currentLoginAt;
+    user.currentLoginAt = new Date().toISOString();
 
     return HttpResponse.json({
-      user: publicUser,
+      user: toPublicUser(user),
       session: issueSession(createToken(), user.id),
     });
   }),

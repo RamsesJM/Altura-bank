@@ -8,6 +8,7 @@ export const SESSION_TTL_MS = 300_000;
 
 interface StoredUser extends User {
   password: string;
+  currentLoginAt: string | null;
 }
 
 interface StoredSession {
@@ -31,6 +32,7 @@ function createDatabase(): Database {
         email: DEMO_EMAIL,
         password: DEMO_PASSWORD,
         lastLoginAt: null,
+        currentLoginAt: null,
       },
     ],
     sessions: new Map(),
@@ -50,6 +52,11 @@ export function createToken(): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-export function toPublicUser({ password: _password, ...user }: StoredUser): User {
-  return user;
+export function toPublicUser(user: StoredUser): User {
+  return {
+    id: user.id,
+    fullName: user.fullName,
+    email: user.email,
+    lastLoginAt: user.lastLoginAt,
+  };
 }
