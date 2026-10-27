@@ -1,7 +1,7 @@
+import { DEMO_EMAIL, DEMO_PASSWORD } from '../config/demoAccount';
 import type { User } from '../types/auth';
 
-export const DEMO_EMAIL = 'demo@alturabank.com';
-export const DEMO_PASSWORD = 'Demo1234';
+export { DEMO_EMAIL, DEMO_PASSWORD };
 export const MAX_FAILED_ATTEMPTS = 3;
 export const LOCKOUT_MS = 60_000;
 export const SESSION_TTL_MS = 300_000;
