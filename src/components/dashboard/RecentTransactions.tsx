@@ -1,3 +1,4 @@
+import { Link } from 'react-router';
 import type { Account, Transaction } from '../../types/banking';
 import { formatCurrency, formatHiddenAmount } from '../../utils/format';
 import { MaskedAccountNumber } from './MaskedAccountNumber';
@@ -63,6 +64,7 @@ export function RecentTransactions({ state, accounts, hidden }: RecentTransactio
   return (
     <section
       aria-labelledby="recent-transactions-heading"
+      aria-busy={state.status === 'loading'}
       className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
     >
       <h2 id="recent-transactions-heading" className="text-lg font-semibold text-slate-900">
@@ -101,14 +103,12 @@ export function RecentTransactions({ state, accounts, hidden }: RecentTransactio
       </div>
 
       <div className="mt-4 border-t border-slate-100 pt-4">
-        <button
-          type="button"
-          disabled
-          className="min-h-11 text-sm font-medium text-slate-400"
-          title="Available in the next release"
+        <Link
+          to="/transactions"
+          className="inline-flex min-h-11 items-center text-sm font-medium text-brand-600 hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-600"
         >
           View all transactions
-        </button>
+        </Link>
       </div>
     </section>
   );

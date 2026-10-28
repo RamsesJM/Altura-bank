@@ -26,3 +26,19 @@ export interface ExchangeRate {
   usdToDop: number;
   date: string;
 }
+
+export interface TransactionFilters {
+  accountId?: string;
+  type?: TransactionType;
+  from?: string;
+  to?: string;
+  q?: string;
+}
+
+export interface TransactionPage {
+  transactions: Transaction[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}

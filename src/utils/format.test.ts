@@ -40,3 +40,9 @@ describe('formatHiddenAmount', () => {
     expect(formatHiddenAmount('USD')).toBe('US$ ••••••');
   });
 });
+
+describe('formatCurrency rounding', () => {
+  it('never renders a negative zero', () => {
+    expect(formatCurrency(-0.001, 'DOP')).toBe('RD$0.00');
+  });
+});

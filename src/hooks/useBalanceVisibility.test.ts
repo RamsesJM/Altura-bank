@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
+import { StrictMode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useBalanceVisibility } from './useBalanceVisibility';
 
@@ -40,5 +41,15 @@ describe('useBalanceVisibility', () => {
 
     act(() => result.current.toggle());
     expect(result.current.hidden).toBe(true);
+  });
+
+  it('persists once per toggle under StrictMode', () => {
+    const setItem = vi.spyOn(Storage.prototype, 'setItem');
+    const { result } = renderHook(() => useBalanceVisibility(), { wrapper: StrictMode });
+
+    act(() => result.current.toggle());
+
+    expect(setItem).toHaveBeenCalledTimes(1);
+    expect(setItem).toHaveBeenCalledWith('altura.hideBalances', 'true');
   });
 });

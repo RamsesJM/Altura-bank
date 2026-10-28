@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { setAuthToken, setUnauthorizedHandler } from '../services/apiClient';
 import * as authService from '../services/authService';
@@ -12,6 +13,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const queryClient = useQueryClient();
   const statusRef = useRef(status);
 
   useEffect(() => {
@@ -27,12 +29,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearSession = useCallback(() => {
+    statusRef.current = 'unauthenticated';
+    queryClient.clear();
     setAuthToken(null);
     writeSession(null);
     setUser(null);
     setSession(null);
     setStatus('unauthenticated');
-  }, []);
+  }, [queryClient]);
 
   const login = useCallback(
     async (email: string, password: string) => {

@@ -29,7 +29,7 @@ interface Database {
   lockedUntil: number | null;
 }
 
-function createDatabase(): Database {
+function createDatabase(transactions: Transaction[] = createTransactions(Date.now())): Database {
   return {
     users: [
       {
@@ -43,7 +43,7 @@ function createDatabase(): Database {
     ],
     sessions: new Map(),
     accounts: createAccounts(),
-    transactions: createTransactions(Date.now()),
+    transactions,
     failedAttempts: 0,
     lockedUntil: null,
   };
@@ -59,7 +59,8 @@ function readPersistedDatabase(): Database | null {
     if (!raw) return null;
 
     const data = JSON.parse(raw) as Partial<PersistedDatabase>;
-    return { ...createDatabase(), ...data, sessions: new Map(data.sessions ?? []) };
+    const defaults = createDatabase(data.transactions ?? createTransactions(Date.now()));
+    return { ...defaults, ...data, sessions: new Map(data.sessions ?? []) };
   } catch {
     return null;
   }

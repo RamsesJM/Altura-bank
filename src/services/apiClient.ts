@@ -60,9 +60,9 @@ async function toApiError(response: Response): Promise<ApiError> {
   return new ApiError(response.status, { code: 'UNKNOWN_ERROR', message: GENERIC_MESSAGE });
 }
 
-export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function send(path: string, options: RequestOptions, accept: string): Promise<Response> {
   const { method = 'GET', body } = options;
-  const headers: Record<string, string> = { Accept: 'application/json' };
+  const headers: Record<string, string> = { Accept: accept };
 
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (authToken) headers.Authorization = `Bearer ${authToken}`;
@@ -87,7 +87,18 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     throw error;
   }
 
+  return response;
+}
+
+export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const response = await send(path, options, 'application/json');
+
   if (response.status === 204) return undefined as T;
 
   return (await response.json()) as T;
+}
+
+export async function apiDownload(path: string): Promise<Blob> {
+  const response = await send(path, {}, 'text/csv');
+  return response.blob();
 }

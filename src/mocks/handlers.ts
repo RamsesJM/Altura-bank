@@ -1,6 +1,9 @@
 import { delay, http, HttpResponse } from 'msw';
 import type { ApiErrorBody, Session } from '../types/auth';
+import type { TransactionFilters } from '../types/banking';
+import { bankDateKey } from '../utils/dates';
 import { EXCHANGE_RATE } from './bankingData';
+import { filterTransactions, paginate, toCsv } from './transactionQuery';
 import {
   createToken,
   db,
@@ -12,8 +15,13 @@ import {
 } from './db';
 
 const INVALID_CREDENTIALS_MESSAGE = 'Incorrect email or password.';
-const DEFAULT_TRANSACTION_LIMIT = 20;
-const MAX_TRANSACTION_LIMIT = 50;
+const DEFAULT_PAGE_SIZE = 10;
+const MAX_PAGE_SIZE = 50;
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const INVALID_RANGE: ApiErrorBody = {
+  code: 'VALIDATION_ERROR',
+  message: 'The start date must be before the end date.',
+};
 
 async function simulateLatency() {
   if (import.meta.env.MODE === 'test') return;
@@ -56,10 +64,32 @@ function findActiveSession(request: Request) {
   return { token, session };
 }
 
-function readLimit(request: Request): number {
-  const value = Number(new URL(request.url).searchParams.get('limit'));
-  if (!Number.isInteger(value) || value <= 0) return DEFAULT_TRANSACTION_LIMIT;
-  return Math.min(value, MAX_TRANSACTION_LIMIT);
+function readPositiveInteger(value: string | null, fallback: number): number {
+  const number = Number(value);
+  return value !== null && Number.isInteger(number) && number > 0 ? number : fallback;
+}
+
+function readDate(value: string | null): string | undefined {
+  if (!value || !DATE_PATTERN.test(value)) return undefined;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value) ? value : undefined;
+}
+
+function readFilters(request: Request): TransactionFilters {
+  const params = new URL(request.url).searchParams;
+  const type = params.get('type');
+
+  return {
+    accountId: params.get('accountId') || undefined,
+    type: type === 'credit' || type === 'debit' ? type : undefined,
+    from: readDate(params.get('from')),
+    to: readDate(params.get('to')),
+    q: params.get('q')?.trim() || undefined,
+  };
+}
+
+function hasInvalidRange({ from, to }: TransactionFilters): boolean {
+  return Boolean(from && to && from > to);
 }
 
 function releaseExpiredLock() {
@@ -183,10 +213,36 @@ export const handlers = [
     await simulateLatency();
     if (!findActiveSession(request)) return sessionExpired();
 
-    const transactions = [...db.transactions]
-      .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
-      .slice(0, readLimit(request));
+    const filters = readFilters(request);
+    if (hasInvalidRange(filters)) return errorResponse(400, INVALID_RANGE);
 
-    return HttpResponse.json({ transactions });
+    const params = new URL(request.url).searchParams;
+    const page = readPositiveInteger(params.get('page'), 1);
+    const pageSize = Math.min(readPositiveInteger(params.get('pageSize'), DEFAULT_PAGE_SIZE), MAX_PAGE_SIZE);
+    const { items, total, totalPages } = paginate(
+      filterTransactions(db.transactions, filters),
+      page,
+      pageSize,
+    );
+
+    return HttpResponse.json({ transactions: items, page, pageSize, total, totalPages });
+  }),
+
+  http.get('/api/transactions/export', async ({ request }) => {
+    await simulateLatency();
+    if (!findActiveSession(request)) return sessionExpired();
+
+    const filters = readFilters(request);
+    if (hasInvalidRange(filters)) return errorResponse(400, INVALID_RANGE);
+
+    const csv = toCsv(filterTransactions(db.transactions, filters), db.accounts);
+    const fileName = `altura-transactions-${bankDateKey(new Date().toISOString())}.csv`;
+
+    return new HttpResponse(csv, {
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename="${fileName}"`,
+      },
+    });
   }),
 ];

@@ -99,7 +99,7 @@ describe('DashboardPage', () => {
     expect(within(section('Your accounts')).getByText('US$2,350.75')).toBeInTheDocument();
   });
 
-  it('signs out once without retrying when the session expires while loading', async () => {
+  it('signs out when the session expires while loading', async () => {
     let calls = 0;
     server.use(
       http.get('/api/accounts', () => {
@@ -178,7 +178,7 @@ describe('DashboardPage', () => {
     });
 
     expect(queryClient.getQueryState(queryKeys.accounts)?.status).toBe('error');
-    expect(queryClient.getQueryState(queryKeys.transactions(5))?.status).toBe('error');
+    expect(queryClient.getQueryState(queryKeys.transactionPage({ pageSize: 5 }))?.status).toBe('error');
     expect(screen.getByText('RD$327,166.62')).toBeInTheDocument();
     expect(within(section('Your accounts')).getByText('US$2,350.75')).toBeInTheDocument();
     expect(within(section('Recent transactions')).getAllByRole('listitem')).toHaveLength(5);
@@ -195,5 +195,19 @@ describe('DashboardPage', () => {
     expect(toggle).toHaveAttribute('aria-pressed', 'true');
     expect(toggle).toHaveTextContent('Hide balances');
     expect(toggle).not.toHaveTextContent('Show balances');
+  });
+
+  it('marks loading sections as busy', async () => {
+    server.use(
+      http.get('/api/accounts', async () => {
+        await delay(50);
+        return HttpResponse.json({ accounts: db.accounts });
+      }),
+    );
+    await renderDashboard();
+
+    expect(section('Your accounts')).toHaveAttribute('aria-busy', 'true');
+    await within(section('Your accounts')).findByText('US$2,350.75');
+    expect(section('Your accounts')).toHaveAttribute('aria-busy', 'false');
   });
 });

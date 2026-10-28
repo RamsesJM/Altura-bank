@@ -29,6 +29,15 @@ The login page also has a **Use demo account** button that fills both fields.
 - Hide balances with one tap; the preference is remembered on the device
 - Loading skeletons, empty states and per-section errors with a retry button, so one failing request never blanks the whole page
 
+### Transaction history
+
+- Full history with pagination, 10 transactions per page
+- Filters by account, type (credits or debits) and date range, plus a text search that ignores case and accents
+- Filters and page live in the URL, so a filtered view can be bookmarked, shared or restored with the back button
+- Dates are filtered and shown in the bank's time zone (Santo Domingo), so a transaction never lands on the wrong day
+- Export the filtered list to CSV with one click; cells that could run as spreadsheet formulas are neutralized
+- Invalid dates or page numbers in the URL are ignored instead of breaking the page
+
 ### Session security
 
 - Protected routes: private pages redirect to the login and come back to the requested page after signing in
@@ -40,7 +49,7 @@ The login page also has a **Use demo account** button that fills both fields.
 
 ### Quality
 
-- 103 automated tests covering the mock API, the API client, routing, the login form, the session timeout and the dashboard
+- 173 automated tests covering the mock API, the API client, routing, the login form, the session timeout, the dashboard and the transaction history
 - Strict TypeScript, ESLint and Prettier
 - Accessible forms: labels, `aria-invalid`, error announcements and keyboard-friendly dialogs
 
@@ -67,27 +76,33 @@ The login page also has a **Use demo account** button that fills both fields.
 
 **Money in cents.** The consolidated balance converts each amount to cents before adding, so floating point errors never show up as a wrong cent on screen.
 
+**Filtering on the server.** The history page sends its filters to the API and receives one page at a time, as it would with a real bank where an account can have thousands of transactions. The filtering, search and pagination logic lives in pure functions that the mock API uses and that are tested on their own.
+
 **Tests first.** Each feature started with failing tests describing the expected behavior. Timer-based rules like the lockout and the inactivity timeout are tested with fake timers, so they run in seconds instead of minutes.
 
 ## Security note
 
 The session token is stored in `sessionStorage` so it is removed when the tab closes. In a production banking app the token would be issued by the server as an `httpOnly`, `Secure`, `SameSite=Strict` cookie, which JavaScript cannot read. That is not possible without a real backend, so this demo documents the trade-off instead of hiding it.
 
+### CSV export
+
+Exported files are opened in spreadsheet programs, which run any cell that starts with `=`, `+`, `-` or `@` as a formula. A transaction description is text the bank does not fully control, so every text cell that starts with one of those characters, a tab or a carriage return is prefixed with `'`. Amounts are written as plain numbers and keep their sign.
+
 ## Project structure
 
 ```
 src/
-├── components/   Reusable UI, route guards and dashboard sections
+├── components/   Reusable UI, layout, route guards, dashboard and transaction sections
 ├── config/       Demo account settings
 ├── context/      Authentication state
-├── hooks/        Auth, session timeout, banking queries and balance visibility
+├── hooks/        Auth, session timeout, banking queries, URL filters and balance visibility
 ├── mocks/        Mock API (MSW handlers and in-memory data)
-├── pages/        Login and dashboard
+├── pages/        Login, dashboard and transaction history
 ├── routes/       Route definitions
 ├── services/     API client, auth and banking services, query client
 ├── test/         Test setup and helpers
 ├── types/        Shared TypeScript types
-└── utils/        Currency formatting and balance calculation
+└── utils/        Currency and date formatting, balance calculation and file downloads
 ```
 
 Design decisions are documented in [`docs/specs`](docs/specs).
@@ -115,7 +130,7 @@ npm run dev
 - [x] Project setup
 - [x] Authentication and session management
 - [x] Accounts dashboard
-- [ ] Transaction history with filters
+- [x] Transaction history with filters
 - [ ] Transfers
 - [ ] Continuous integration with GitHub Actions
 - [ ] Mobile support: touch activity detection, locked-device session handling and mobile-first polish
