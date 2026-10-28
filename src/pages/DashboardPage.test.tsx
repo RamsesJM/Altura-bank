@@ -178,7 +178,7 @@ describe('DashboardPage', () => {
     });
 
     expect(queryClient.getQueryState(queryKeys.accounts)?.status).toBe('error');
-    expect(queryClient.getQueryState(queryKeys.transactions(5))?.status).toBe('error');
+    expect(queryClient.getQueryState(queryKeys.transactionPage({ pageSize: 5 }))?.status).toBe('error');
     expect(screen.getByText('RD$327,166.62')).toBeInTheDocument();
     expect(within(section('Your accounts')).getByText('US$2,350.75')).toBeInTheDocument();
     expect(within(section('Recent transactions')).getAllByRole('listitem')).toHaveLength(5);
