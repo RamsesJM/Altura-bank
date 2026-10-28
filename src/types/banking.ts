@@ -1,4 +1,4 @@
-export type Currency = 'BOB' | 'USD';
+export type Currency = 'DOP' | 'USD';
 
 export type AccountType = 'savings' | 'checking';
 
@@ -18,5 +18,11 @@ export interface Transaction {
   date: string;
   description: string;
   amount: number;
+  currency: Currency;
   type: TransactionType;
+}
+
+export interface ExchangeRate {
+  usdToDop: number;
+  date: string;
 }

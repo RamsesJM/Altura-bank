@@ -1,6 +1,6 @@
 # Altura Bank
 
-Online banking demo built with React and TypeScript. The goal is to reproduce the parts of a banking front end where details matter most: authentication, session security, form validation and error handling, all backed by automated tests.
+Online banking demo built with React and TypeScript. The goal is to reproduce the parts of a banking front end where details matter most: authentication, session security, account data, form validation and error handling, all backed by automated tests.
 
 > Altura Bank is a fictional bank created for portfolio purposes.
 
@@ -21,6 +21,14 @@ The login page also has a **Use demo account** button that fills both fields.
 - Account locked for 60 seconds after 3 failed attempts, with a live countdown
 - Error messages never reveal whether an email is registered
 
+### Accounts dashboard
+
+- Consolidated balance in Dominican pesos, converting USD accounts at the Banco Central reference rate
+- Savings and checking accounts in DOP and USD with masked account numbers
+- Five most recent transactions with credit and debit amounts
+- Hide balances with one tap; the preference is remembered on the device
+- Loading skeletons, empty states and per-section errors with a retry button, so one failing request never blanks the whole page
+
 ### Session security
 
 - Protected routes: private pages redirect to the login and come back to the requested page after signing in
@@ -28,10 +36,11 @@ The login page also has a **Use demo account** button that fills both fields.
 - Warning dialog with a countdown 60 seconds before the session expires
 - Active users stay signed in: the session is renewed in the background while they use the app
 - Any expired session detected by the API signs the user out from a single place
+- Cached account data is cleared on sign-out, so it is never shown to the next person using the browser
 
 ### Quality
 
-- 58 automated tests covering the mock API, the API client, routing, the login form and the session timeout
+- 103 automated tests covering the mock API, the API client, routing, the login form, the session timeout and the dashboard
 - Strict TypeScript, ESLint and Prettier
 - Accessible forms: labels, `aria-invalid`, error announcements and keyboard-friendly dialogs
 
@@ -41,6 +50,7 @@ The login page also has a **Use demo account** button that fills both fields.
 | --- | --- |
 | UI | React 19, TypeScript, Tailwind CSS 4 |
 | Routing | React Router 7 |
+| Server state | TanStack Query 5 |
 | API | Mock Service Worker (MSW) |
 | Tests | Vitest, React Testing Library, user-event, jsdom |
 | Tooling | Vite 7, ESLint, Prettier |
@@ -53,6 +63,10 @@ The login page also has a **Use demo account** button that fills both fields.
 
 **One API client for every request.** All calls go through `apiClient`, which converts every failure into an `ApiError` with a fixed shape. Screens never parse raw responses, and an expired session is handled in one place for the whole app.
 
+**TanStack Query for server data.** Account balances and transactions are server state: they can change elsewhere and go stale. TanStack Query handles caching, loading and error states and retries, so components only describe what to show. Retries are limited to one and never happen on an expired session, and the whole cache is cleared on sign-out.
+
+**Money in cents.** The consolidated balance converts each amount to cents before adding, so floating point errors never show up as a wrong cent on screen.
+
 **Tests first.** Each feature started with failing tests describing the expected behavior. Timer-based rules like the lockout and the inactivity timeout are tested with fake timers, so they run in seconds instead of minutes.
 
 ## Security note
@@ -63,17 +77,17 @@ The session token is stored in `sessionStorage` so it is removed when the tab cl
 
 ```
 src/
-├── components/   Reusable UI and route guards
+├── components/   Reusable UI, route guards and dashboard sections
 ├── config/       Demo account settings
 ├── context/      Authentication state
-├── hooks/        useAuth, useCountdown, useSessionTimeout
+├── hooks/        Auth, session timeout, banking queries and balance visibility
 ├── mocks/        Mock API (MSW handlers and in-memory data)
 ├── pages/        Login and dashboard
 ├── routes/       Route definitions
-├── services/     API client, auth service, session storage
+├── services/     API client, auth and banking services, query client
 ├── test/         Test setup and helpers
 ├── types/        Shared TypeScript types
-└── utils/        Formatting helpers
+└── utils/        Currency formatting and balance calculation
 ```
 
 Design decisions are documented in [`docs/specs`](docs/specs).
@@ -100,11 +114,14 @@ npm run dev
 
 - [x] Project setup
 - [x] Authentication and session management
-- [ ] Accounts dashboard
+- [x] Accounts dashboard
 - [ ] Transaction history with filters
 - [ ] Transfers
 - [ ] Continuous integration with GitHub Actions
-- [ ] Loan simulator and deployment
+- [ ] Mobile support: touch activity detection, locked-device session handling and mobile-first polish
+- [ ] Deployment to Vercel with a live demo
+- [ ] Installable Progressive Web App
+- [ ] Loan simulator
 
 ## Author
 

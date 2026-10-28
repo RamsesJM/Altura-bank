@@ -1,11 +1,26 @@
 import type { Currency } from '../types/banking';
 
+const CURRENCY_SYMBOLS: Record<Currency, 'RD$' | 'US$'> = {
+  DOP: 'RD$',
+  USD: 'US$',
+};
+
+const amountFormatter = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+export function currencySymbol(currency: Currency): 'RD$' | 'US$' {
+  return CURRENCY_SYMBOLS[currency];
+}
+
 export function formatCurrency(amount: number, currency: Currency): string {
-  return new Intl.NumberFormat('es-BO', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(amount);
+  const sign = amount < 0 ? '-' : '';
+  return `${sign}${currencySymbol(currency)}${amountFormatter.format(Math.abs(amount))}`;
+}
+
+export function formatHiddenAmount(currency: Currency): string {
+  return `${currencySymbol(currency)} ••••••`;
 }
 
 export function maskAccountNumber(number: string): string {
