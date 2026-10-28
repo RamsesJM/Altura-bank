@@ -55,13 +55,16 @@ export function useTransactionFilters() {
   );
 
   const setPage = useCallback(
-    (nextPage: number) => {
-      setParams((current) => {
-        const next = new URLSearchParams(current);
-        if (nextPage > 1) next.set('page', String(nextPage));
-        else next.delete('page');
-        return next;
-      });
+    (nextPage: number, { replace = false } = {}) => {
+      setParams(
+        (current) => {
+          const next = new URLSearchParams(current);
+          if (nextPage > 1) next.set('page', String(nextPage));
+          else next.delete('page');
+          return next;
+        },
+        { replace },
+      );
     },
     [setParams],
   );

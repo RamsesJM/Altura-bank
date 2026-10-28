@@ -118,6 +118,20 @@ describe('toCsv', () => {
     expect(csv).toContain(",'@cmd,");
   });
 
+  it.each([
+    ['+1 555 0100', ",'+1 555 0100,"],
+    ['-2+3', ",'-2+3,"],
+    ['\tcmd', ",'\tcmd,"],
+    ['\rcmd', ',"\'\rcmd",'],
+  ])('neutralizes the description %j', (description, cell) => {
+    expect(toCsv([{ ...t1, description }], accounts)).toContain(cell);
+  });
+
+  it('keeps the sign of negative amounts without a prefix', () => {
+    const [, row] = toCsv([t1], accounts).split('\r\n');
+    expect(row.split(',').at(-2)).toBe('-100.00');
+  });
+
   it('writes only the header when there are no transactions', () => {
     expect(toCsv([], accounts)).toBe(header);
   });

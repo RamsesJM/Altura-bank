@@ -39,7 +39,7 @@ export function TransactionFilters({
 
   if (filters.q !== syncedQuery) {
     setSyncedQuery(filters.q);
-    setSearch(filters.q ?? '');
+    if ((filters.q ?? '') !== search.trim()) setSearch(filters.q ?? '');
   }
 
   useEffect(() => {

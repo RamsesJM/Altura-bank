@@ -71,7 +71,13 @@ describe('TransactionsPage', () => {
     server.use(
       http.get('/api/transactions', async () => {
         await delay(50);
-        return HttpResponse.json({ transactions: [], page: 1, pageSize: 10, total: 0, totalPages: 1 });
+        return HttpResponse.json({
+          transactions: [],
+          page: 1,
+          pageSize: 10,
+          total: 0,
+          totalPages: 1,
+        });
       }),
     );
     await renderHistory();
@@ -110,5 +116,30 @@ describe('TransactionsPage', () => {
 
     expect(list().textContent).not.toMatch(/(RD|US)\$\d/);
     expect(within(list()).getAllByText(/RD\$ ••••••|US\$ ••••••/).length).toBeGreaterThan(0);
+  });
+
+  it('keeps an earlier page when the user goes back to it', async () => {
+    await seedSession();
+    const { user } = renderApp('/transactions?type=credit', { history: ['/transactions?page=3'] });
+    await screen.findByText(/^Showing 1–/);
+
+    await user.click(screen.getByRole('button', { name: 'Browser back' }));
+
+    expect(
+      await screen.findByText(`Showing 21–${Math.min(30, total())} of ${total()} transactions`),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('location')).toHaveTextContent('/transactions?page=3');
+  });
+
+  it('replaces a page beyond the end so going back skips it', async () => {
+    await seedSession();
+    const { user } = renderApp('/transactions?page=9', { history: ['/transactions'] });
+    await waitFor(() =>
+      expect(screen.getByTestId('location')).toHaveTextContent(`page=${lastPage()}`),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Browser back' }));
+
+    await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/transactions'));
   });
 });

@@ -23,8 +23,7 @@ async function renderHistory(route = '/transactions') {
 
 const list = () => screen.getByRole('region', { name: 'All transactions' });
 const count = (filters: TransactionFilters) => filterTransactions(db.transactions, filters).length;
-const summary = (total: number) =>
-  `Showing 1–${Math.min(10, total)} of ${total} transactions`;
+const summary = (total: number) => `Showing 1–${Math.min(10, total)} of ${total} transactions`;
 
 describe('TransactionsPage filters and export', () => {
   afterEach(() => {
@@ -137,5 +136,27 @@ describe('TransactionsPage filters and export', () => {
 
     expect(await screen.findByText('Export failed. Please try again.')).toBeInTheDocument();
     expect(saveBlob).not.toHaveBeenCalled();
+  });
+
+  it('discards a pending search when filters are cleared', async () => {
+    const { user } = await renderHistory('/transactions?type=debit');
+    const search = screen.getByLabelText('Search transactions');
+
+    await user.type(search, 'uber');
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }));
+    await new Promise((resolve) => setTimeout(resolve, 400));
+
+    expect(screen.getByTestId('location').textContent).toBe('/transactions');
+    expect(search).toHaveValue('');
+  });
+
+  it('keeps spaces typed in the search box', async () => {
+    const { user } = await renderHistory();
+    const search = screen.getByLabelText('Search transactions');
+
+    await user.type(search, 'netflix ');
+
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('q=netflix'));
+    expect(search).toHaveValue('netflix ');
   });
 });

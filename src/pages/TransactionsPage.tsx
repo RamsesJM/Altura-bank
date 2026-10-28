@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { SectionError } from '../components/dashboard/SectionError';
 import { Skeleton } from '../components/dashboard/Skeleton';
 import { Pagination } from '../components/transactions/Pagination';
@@ -34,14 +34,24 @@ export function TransactionsPage() {
   });
   const headingRef = useRef<HTMLHeadingElement>(null);
   const rangeErrorId = useId();
+  const [filtersKey, setFiltersKey] = useState(0);
 
   const data = invalidRange ? undefined : transactionsQuery.data;
   const isBusy =
     !invalidRange && (transactionsQuery.isPending || transactionsQuery.isPlaceholderData);
 
+  const isPlaceholderData = transactionsQuery.isPlaceholderData;
+
   useEffect(() => {
-    if (data && page > data.totalPages) setPage(data.totalPages);
-  }, [data, page, setPage]);
+    if (data && !isPlaceholderData && page > data.totalPages) {
+      setPage(data.totalPages, { replace: true });
+    }
+  }, [data, isPlaceholderData, page, setPage]);
+
+  function clearAllFilters() {
+    clearFilters();
+    setFiltersKey((key) => key + 1);
+  }
 
   function changePage(nextPage: number) {
     setPage(nextPage);
@@ -73,12 +83,13 @@ export function TransactionsPage() {
       )}
 
       <TransactionFilters
+        key={filtersKey}
         accounts={accountsQuery.data ?? []}
         filters={filters}
         hasFilters={hasFilters}
         rangeErrorId={invalidRange ? rangeErrorId : undefined}
         onChange={setFilter}
-        onClear={clearFilters}
+        onClear={clearAllFilters}
       />
 
       <section
@@ -124,7 +135,7 @@ export function TransactionsPage() {
             {hasFilters && (
               <button
                 type="button"
-                onClick={clearFilters}
+                onClick={clearAllFilters}
                 className="min-h-11 rounded-lg border border-slate-300 px-4 text-sm font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
               >
                 Clear filters
