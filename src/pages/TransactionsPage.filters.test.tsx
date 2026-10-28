@@ -140,14 +140,13 @@ describe('TransactionsPage filters and export', () => {
 
   it('discards a pending search when filters are cleared', async () => {
     const { user } = await renderHistory('/transactions?type=debit');
-    const search = screen.getByLabelText('Search transactions');
 
-    await user.type(search, 'uber');
+    await user.type(screen.getByLabelText('Search transactions'), 'uber');
     await user.click(screen.getByRole('button', { name: 'Clear filters' }));
     await new Promise((resolve) => setTimeout(resolve, 400));
 
     expect(screen.getByTestId('location').textContent).toBe('/transactions');
-    expect(search).toHaveValue('');
+    expect(screen.getByLabelText('Search transactions')).toHaveValue('');
   });
 
   it('keeps spaces typed in the search box', async () => {
