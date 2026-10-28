@@ -4,26 +4,53 @@ import { renderApp } from '../test/renderApp';
 import { seedSession } from '../test/session';
 
 describe('AppLayout', () => {
-  it('marks the current page in the main navigation', async () => {
+  it('marks the current page in both navigation bars', async () => {
     await seedSession();
     renderApp('/');
 
-    const navigation = await screen.findByRole('navigation', { name: 'Main' });
+    const navigations = await screen.findAllByRole('navigation', { name: 'Main' });
 
-    expect(within(navigation).getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
-    expect(within(navigation).getByRole('link', { name: 'Transactions' })).not.toHaveAttribute(
-      'aria-current',
-    );
+    expect(navigations).toHaveLength(2);
+    for (const navigation of navigations) {
+      expect(within(navigation).getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+        'aria-current',
+        'page',
+      );
+      expect(within(navigation).getByRole('link', { name: 'Transactions' })).not.toHaveAttribute(
+        'aria-current',
+      );
+    }
+  });
+
+  it('shows the bottom bar on phones and the top navigation from sm up', async () => {
+    await seedSession();
+    renderApp('/');
+
+    expect(await screen.findByTestId('nav-mobile')).toHaveClass('sm:hidden');
+    expect(screen.getByTestId('nav-desktop')).toHaveClass('hidden', 'sm:block');
+  });
+
+  it('lists the same three destinations in both bars', async () => {
+    await seedSession();
+    renderApp('/');
+
+    for (const testId of ['nav-desktop', 'nav-mobile']) {
+      const links = within(await screen.findByTestId(testId)).getAllByRole('link');
+      expect(links.map((link) => link.textContent)).toEqual([
+        'Dashboard',
+        'Transactions',
+        'Transfers',
+      ]);
+    }
   });
 
   it('navigates to the transaction history', async () => {
     await seedSession();
     const { user } = renderApp('/');
 
-    await user.click(await screen.findByRole('link', { name: 'Transactions' }));
+    await user.click(
+      within(await screen.findByTestId('nav-mobile')).getByRole('link', { name: 'Transactions' }),
+    );
 
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Transactions' }),
@@ -57,12 +84,15 @@ describe('AppLayout', () => {
     await seedSession();
     renderApp('/transfers');
 
-    const navigation = await screen.findByRole('navigation', { name: 'Main' });
+    const navigations = await screen.findAllByRole('navigation', { name: 'Main' });
 
-    expect(within(navigation).getByRole('link', { name: 'Transfers' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
+    expect(navigations).toHaveLength(2);
+    for (const navigation of navigations) {
+      expect(within(navigation).getByRole('link', { name: 'Transfers' })).toHaveAttribute(
+        'aria-current',
+        'page',
+      );
+    }
   });
 
   it('opens transfers from the dashboard', async () => {

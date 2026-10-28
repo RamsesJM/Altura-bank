@@ -53,15 +53,21 @@ The login page also has a **Use demo account** button that fills both fields.
 ### Session security
 
 - Protected routes: private pages redirect to the login and come back to the requested page after signing in
-- Automatic sign-out after 5 minutes of inactivity
+- Automatic sign-out after 5 minutes of inactivity, also enforced the moment a locked phone or background tab comes back, before any data is shown
+- Touch, pen, mouse, keyboard and scrolling inside any element count as activity
 - Warning dialog with a countdown 60 seconds before the session expires
 - Active users stay signed in: the session is renewed in the background while they use the app
 - Any expired session detected by the API signs the user out from a single place
 - Cached account data is cleared on sign-out, so it is never shown to the next person using the browser
 
+### Mobile
+
+- Bottom navigation bar on phones, within thumb reach and clear of the iPhone home indicator
+- 16 px form fields on phones, so iOS does not zoom in when a field is focused
+
 ### Quality
 
-- 269 automated tests covering the mock API, the API client, routing, the login form, the session timeout, the dashboard, the transaction history and transfers
+- 280 automated tests covering the mock API, the API client, routing, the login form, the session timeout, the dashboard, the transaction history and transfers
 - Continuous integration: lint, tests and a production build run on GitHub Actions for every push and pull request, and `main` only accepts pull requests that pass
 - Strict TypeScript, ESLint and Prettier
 - Accessible forms: labels, `aria-invalid`, error announcements and keyboard-friendly dialogs
@@ -152,10 +158,9 @@ npm run dev
 - [x] Transaction history with filters
 - [x] Transfers
 - [x] Continuous integration with GitHub Actions
-- [ ] Mobile support: touch activity detection, locked-device session handling and mobile-first polish
+- [x] Mobile support: touch activity detection, locked-device session handling and mobile-first polish
 - [ ] Deployment to Vercel with a live demo
 - [ ] Installable Progressive Web App
-- [ ] Loan simulator
 
 ## Author
 
