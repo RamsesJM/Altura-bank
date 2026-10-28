@@ -38,6 +38,16 @@ The login page also has a **Use demo account** button that fills both fields.
 - Export the filtered list to CSV with one click; cells that could run as spreadsheet formulas are neutralized
 - Invalid dates or page numbers in the URL are ignored instead of breaking the page
 
+### Transfers
+
+- Transfers between your own accounts and to other customers of the bank
+- Saved beneficiaries, or any account number: the holder's name is shown masked (for example "Maria P.") before you send
+- DOP and USD conversion with separate buy and sell rates, shown before you confirm
+- Review step with the exact amounts and a 5-minute quote; a one-time code for transfers to other people (demo code `123456`, 3 attempts)
+- Limits for transfers to other people: RD$100,000 per transfer and RD$250,000 per day, counted in Santo Domingo time
+- A double click, a retried request or a lost connection never sends the money twice
+- Receipt with a reference number; balances, history and beneficiaries update right away
+
 ### Session security
 
 - Protected routes: private pages redirect to the login and come back to the requested page after signing in
@@ -49,7 +59,7 @@ The login page also has a **Use demo account** button that fills both fields.
 
 ### Quality
 
-- 173 automated tests covering the mock API, the API client, routing, the login form, the session timeout, the dashboard and the transaction history
+- 269 automated tests covering the mock API, the API client, routing, the login form, the session timeout, the dashboard, the transaction history and transfers
 - Strict TypeScript, ESLint and Prettier
 - Accessible forms: labels, `aria-invalid`, error announcements and keyboard-friendly dialogs
 
@@ -78,11 +88,17 @@ The login page also has a **Use demo account** button that fills both fields.
 
 **Filtering on the server.** The history page sends its filters to the API and receives one page at a time, as it would with a real bank where an account can have thousands of transactions. The filtering, search and pagination logic lives in pure functions that the mock API uses and that are tested on their own.
 
+**Quote first, then confirm.** A transfer moves money in two calls. The quote validates the balance, limits and destination and fixes the rate and amounts the customer sees; the confirmation only accepts that quote, checks everything again and carries an idempotency key, so repeating it returns the same receipt instead of a second debit. The browser never calculates the amount that is sent. All money math is done in whole cents and converted amounts are rounded down, so a rounding error can never create a cent.
+
 **Tests first.** Each feature started with failing tests describing the expected behavior. Timer-based rules like the lockout and the inactivity timeout are tested with fake timers, so they run in seconds instead of minutes.
 
 ## Security note
 
 The session token is stored in `sessionStorage` so it is removed when the tab closes. In a production banking app the token would be issued by the server as an `httpOnly`, `Secure`, `SameSite=Strict` cookie, which JavaScript cannot read. That is not possible without a real backend, so this demo documents the trade-off instead of hiding it.
+
+### One-time codes
+
+The verification code is fixed and shown on screen because this demo has no SMS or email provider. A real bank would send a code that expires, is bound to the transfer and is checked only on the server, which is how the mock API treats it apart from the fixed value.
 
 ### CSV export
 
@@ -92,17 +108,17 @@ Exported files are opened in spreadsheet programs, which run any cell that start
 
 ```
 src/
-├── components/   Reusable UI, layout, route guards, dashboard and transaction sections
+├── components/   Reusable UI, layout, route guards, dashboard, transaction and transfer sections
 ├── config/       Demo account settings
 ├── context/      Authentication state
 ├── hooks/        Auth, session timeout, banking queries, URL filters and balance visibility
 ├── mocks/        Mock API (MSW handlers and in-memory data)
-├── pages/        Login, dashboard and transaction history
+├── pages/        Login, dashboard, transaction history and transfers
 ├── routes/       Route definitions
 ├── services/     API client, auth and banking services, query client
 ├── test/         Test setup and helpers
 ├── types/        Shared TypeScript types
-└── utils/        Currency and date formatting, balance calculation and file downloads
+└── utils/        Money and currency conversion, date formatting, balance calculation and file downloads
 ```
 
 Design decisions are documented in [`docs/specs`](docs/specs).
@@ -131,7 +147,7 @@ npm run dev
 - [x] Authentication and session management
 - [x] Accounts dashboard
 - [x] Transaction history with filters
-- [ ] Transfers
+- [x] Transfers
 - [ ] Continuous integration with GitHub Actions
 - [ ] Mobile support: touch activity detection, locked-device session handling and mobile-first polish
 - [ ] Deployment to Vercel with a live demo
