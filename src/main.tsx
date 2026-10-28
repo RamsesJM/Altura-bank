@@ -1,6 +1,4 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App';
+import { startApp } from './bootstrap';
 import './index.css';
 
 async function enableMocking() {
@@ -8,10 +6,4 @@ async function enableMocking() {
   await worker.start({ onUnhandledRequest: 'bypass' });
 }
 
-enableMocking().then(() => {
-  createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-      <App />
-    </StrictMode>,
-  );
-});
+void startApp(document.getElementById('root')!, { startMocking: enableMocking });
