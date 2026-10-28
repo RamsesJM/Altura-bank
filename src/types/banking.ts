@@ -96,3 +96,9 @@ export interface TransferReceipt extends Omit<
   reference: string;
   createdAt: string;
 }
+
+export interface TransferLimits {
+  perTransfer: number;
+  daily: number;
+  dailyRemaining: number;
+}

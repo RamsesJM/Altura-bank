@@ -74,6 +74,7 @@ describe('transfers API mock', () => {
     ['GET', `/api/accounts/lookup?number=${MARIA}`],
     ['POST', '/api/transfers/quote'],
     ['POST', '/api/transfers'],
+    ['GET', '/api/transfers/limits'],
   ])('%s %s requires a session', async (method, path) => {
     const response = await request(path, undefined, {
       method,
@@ -299,5 +300,17 @@ describe('transfers API mock', () => {
     expect(db.transfers).toHaveLength(1);
     expect(db.beneficiaries).toHaveLength(4);
     expect(db.transactions.at(-1)?.description).toBe('Transfer to Pedro G.');
+  });
+
+  it('reports the transfer limits and what is left today', async () => {
+    const token = await signIn();
+    const limits = async () => (await request('/api/transfers/limits', token)).json();
+
+    expect(await limits()).toEqual({ perTransfer: 100000, daily: 250000, dailyRemaining: 250000 });
+
+    const { quoteId } = await quote(token, toMaria('1000'));
+    await confirm(token, { quoteId, otp: '123456' });
+
+    expect((await limits()).dailyRemaining).toBe(249000);
   });
 });

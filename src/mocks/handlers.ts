@@ -1,7 +1,6 @@
 import { delay, http, HttpResponse } from 'msw';
 import type { ApiErrorBody, Session } from '../types/auth';
 import type {
-  Account,
   Transaction,
   TransactionFilters,
   TransferConfirmRequest,
@@ -9,11 +8,19 @@ import type {
   TransferReceipt,
 } from '../types/banking';
 import { bankDateKey } from '../utils/dates';
-import { maskAccountNumber } from '../utils/format';
+import { formatAccountLabel } from '../utils/format';
 import { fromCents, toCents, toDopCents } from '../utils/money';
 import { EXCHANGE_RATE } from './bankingData';
 import { filterTransactions, paginate, toCsv } from './transactionQuery';
-import { DEMO_OTP, MAX_OTP_ATTEMPTS, maskHolderName, quoteTransfer } from './transferRules';
+import {
+  DAILY_LIMIT,
+  dailyUsed,
+  DEMO_OTP,
+  MAX_OTP_ATTEMPTS,
+  maskHolderName,
+  PER_TRANSFER_LIMIT,
+  quoteTransfer,
+} from './transferRules';
 import {
   createToken,
   db,
@@ -102,15 +109,7 @@ function hasInvalidRange({ from, to }: TransactionFilters): boolean {
   return Boolean(from && to && from > to);
 }
 
-const ACCOUNT_LABELS: Record<Account['type'], string> = {
-  savings: 'Savings',
-  checking: 'Checking',
-};
 const REFERENCE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-
-function accountLabel(account: Account): string {
-  return `${ACCOUNT_LABELS[account.type]} ${account.currency} ${maskAccountNumber(account.number)}`;
-}
 
 function createReference(now: number): string {
   const day = bankDateKey(new Date(now).toISOString()).replaceAll('-', '');
@@ -298,6 +297,18 @@ export const handlers = [
     return HttpResponse.json({ beneficiaries: db.beneficiaries });
   }),
 
+  http.get('/api/transfers/limits', async ({ request }) => {
+    await simulateLatency();
+    if (!findActiveSession(request)) return sessionExpired();
+
+    const remainingCents = toCents(DAILY_LIMIT) - toCents(dailyUsed(db.transfers, Date.now()));
+    return HttpResponse.json({
+      perTransfer: PER_TRANSFER_LIMIT,
+      daily: DAILY_LIMIT,
+      dailyRemaining: fromCents(Math.max(0, remainingCents)),
+    });
+  }),
+
   http.post('/api/transfers/quote', async ({ request }) => {
     await simulateLatency();
     if (!findActiveSession(request)) return sessionExpired();
@@ -380,7 +391,8 @@ export const handlers = [
       accountId: source.id,
       date: createdAt,
       description:
-        quote.description ?? `Transfer to ${target ? accountLabel(target) : quote.to.holderName}`,
+        quote.description ??
+        `Transfer to ${target ? formatAccountLabel(target) : quote.to.holderName}`,
       amount: quote.debit,
       currency: source.currency,
       type: 'debit',
@@ -393,7 +405,7 @@ export const handlers = [
         id: `trf-${reference}-in`,
         accountId: target.id,
         date: createdAt,
-        description: quote.description ?? `Transfer from ${accountLabel(source)}`,
+        description: quote.description ?? `Transfer from ${formatAccountLabel(source)}`,
         amount: quote.credit,
         currency: target.currency,
         type: 'credit',

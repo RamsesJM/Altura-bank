@@ -6,6 +6,7 @@ import type {
   TransactionFilters,
   TransactionPage,
   TransferConfirmRequest,
+  TransferLimits,
   TransferQuote,
   TransferQuoteRequest,
   TransferReceipt,
@@ -64,4 +65,8 @@ export function confirmTransfer(
     body: request,
     headers: { 'Idempotency-Key': idempotencyKey },
   });
+}
+
+export function getTransferLimits(): Promise<TransferLimits> {
+  return apiRequest<TransferLimits>('/api/transfers/limits');
 }

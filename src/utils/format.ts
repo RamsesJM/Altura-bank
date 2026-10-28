@@ -1,4 +1,4 @@
-import type { Currency } from '../types/banking';
+import type { Account, Currency } from '../types/banking';
 
 const CURRENCY_SYMBOLS: Record<Currency, 'RD$' | 'US$'> = {
   DOP: 'RD$',
@@ -26,6 +26,15 @@ export function formatHiddenAmount(currency: Currency): string {
 
 export function maskAccountNumber(number: string): string {
   return `**** ${number.slice(-4)}`;
+}
+
+const ACCOUNT_TYPE_LABELS: Record<Account['type'], string> = {
+  savings: 'Savings',
+  checking: 'Checking',
+};
+
+export function formatAccountLabel(account: Account): string {
+  return `${ACCOUNT_TYPE_LABELS[account.type]} ${account.currency} ${maskAccountNumber(account.number)}`;
 }
 
 export function formatCountdown(milliseconds: number): string {
