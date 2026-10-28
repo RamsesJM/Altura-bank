@@ -1,7 +1,19 @@
 import { DEMO_EMAIL, DEMO_PASSWORD } from '../config/demoAccount';
 import type { User } from '../types/auth';
-import type { Account, Transaction } from '../types/banking';
-import { createAccounts, createTransactions } from './bankingData';
+import type {
+  Account,
+  Beneficiary,
+  Transaction,
+  TransferQuote,
+  TransferReceipt,
+} from '../types/banking';
+import {
+  createAccounts,
+  createBeneficiaries,
+  createDirectory,
+  createTransactions,
+  type DirectoryAccount,
+} from './bankingData';
 
 export { DEMO_EMAIL, DEMO_PASSWORD };
 export const MAX_FAILED_ATTEMPTS = 3;
@@ -20,11 +32,28 @@ interface StoredSession {
   expiresAt: number;
 }
 
+export interface StoredQuote {
+  quote: TransferQuote;
+  otpAttempts: number;
+  status: 'open' | 'used' | 'locked';
+}
+
+export interface StoredTransfer {
+  idempotencyKey: string;
+  quoteId: string;
+  receipt: TransferReceipt;
+  thirdPartyDop: number | null;
+}
+
 interface Database {
   users: StoredUser[];
   sessions: Map<string, StoredSession>;
   accounts: Account[];
   transactions: Transaction[];
+  beneficiaries: Beneficiary[];
+  directory: DirectoryAccount[];
+  quotes: Record<string, StoredQuote>;
+  transfers: StoredTransfer[];
   failedAttempts: number;
   lockedUntil: number | null;
 }
@@ -44,6 +73,10 @@ function createDatabase(transactions: Transaction[] = createTransactions(Date.no
     sessions: new Map(),
     accounts: createAccounts(),
     transactions,
+    beneficiaries: createBeneficiaries(),
+    directory: createDirectory(),
+    quotes: {},
+    transfers: [],
     failedAttempts: 0,
     lockedUntil: null,
   };

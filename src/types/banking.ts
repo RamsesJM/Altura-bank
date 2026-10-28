@@ -44,3 +44,55 @@ export interface TransactionPage {
   total: number;
   totalPages: number;
 }
+
+export interface Beneficiary {
+  id: string;
+  alias: string;
+  accountNumber: string;
+  holderName: string;
+  currency: Currency;
+}
+
+export interface AccountLookup {
+  accountNumber: string;
+  holderName: string;
+  currency: Currency;
+}
+
+export type TransferDestination =
+  | { type: 'own'; accountId: string }
+  | { type: 'third-party'; accountNumber: string };
+
+export interface TransferQuoteRequest {
+  fromAccountId: string;
+  to: TransferDestination;
+  amount: string;
+  description?: string;
+}
+
+export interface TransferQuote {
+  quoteId: string;
+  from: { accountId: string; currency: Currency };
+  to: { accountNumber: string; holderName: string; currency: Currency; own: boolean };
+  debit: number;
+  credit: number;
+  rate: { value: number; side: 'buy' | 'sell' } | null;
+  description: string | null;
+  requiresOtp: boolean;
+  expiresAt: string;
+  dailyRemaining: number | null;
+}
+
+export interface TransferConfirmRequest {
+  quoteId: string;
+  otp?: string;
+  saveBeneficiary?: boolean;
+}
+
+export interface TransferReceipt extends Omit<
+  TransferQuote,
+  'quoteId' | 'expiresAt' | 'requiresOtp'
+> {
+  reference: string;
+  createdAt: string;
+}

@@ -1,4 +1,11 @@
-import type { Account, ExchangeRate, Transaction, TransactionType } from '../types/banking';
+import type {
+  Account,
+  Beneficiary,
+  Currency,
+  ExchangeRate,
+  Transaction,
+  TransactionType,
+} from '../types/banking';
 
 const DAY_MS = 86_400_000;
 
@@ -65,4 +72,46 @@ export function createTransactions(now: number): Transaction[] {
     currency: currencies.get(accountId) ?? 'DOP',
     type,
   }));
+}
+
+export interface DirectoryAccount {
+  accountNumber: string;
+  holderName: string;
+  currency: Currency;
+}
+
+export function createDirectory(): DirectoryAccount[] {
+  return [
+    { accountNumber: '3001458820147', holderName: 'Maria Perez', currency: 'DOP' },
+    { accountNumber: '3001458827765', holderName: 'Juan Rodriguez', currency: 'DOP' },
+    { accountNumber: '3001458821093', holderName: 'Ana Martinez', currency: 'USD' },
+    { accountNumber: '3001458824410', holderName: 'Pedro Gomez', currency: 'DOP' },
+    { accountNumber: '3001458826632', holderName: 'Laura Diaz', currency: 'USD' },
+  ];
+}
+
+export function createBeneficiaries(): Beneficiary[] {
+  return [
+    {
+      id: 'ben-maria',
+      alias: 'Maria Perez',
+      accountNumber: '3001458820147',
+      holderName: 'Maria P.',
+      currency: 'DOP',
+    },
+    {
+      id: 'ben-juan',
+      alias: 'Juan Rodriguez',
+      accountNumber: '3001458827765',
+      holderName: 'Juan R.',
+      currency: 'DOP',
+    },
+    {
+      id: 'ben-ana',
+      alias: 'Ana Martinez',
+      accountNumber: '3001458821093',
+      holderName: 'Ana M.',
+      currency: 'USD',
+    },
+  ];
 }
