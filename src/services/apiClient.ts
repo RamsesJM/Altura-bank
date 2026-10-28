@@ -7,6 +7,16 @@ const SERVER_ERROR_CODES: ApiErrorCode[] = [
   'ACCOUNT_LOCKED',
   'SESSION_EXPIRED',
   'VALIDATION_ERROR',
+  'INSUFFICIENT_FUNDS',
+  'LIMIT_EXCEEDED',
+  'DAILY_LIMIT_EXCEEDED',
+  'SAME_ACCOUNT',
+  'ACCOUNT_NOT_FOUND',
+  'OWN_ACCOUNT',
+  'QUOTE_EXPIRED',
+  'QUOTE_USED',
+  'INVALID_OTP',
+  'OTP_LOCKED',
 ];
 const UNAUTHORIZED_EXEMPT_PATHS = ['/api/auth/login'];
 
@@ -15,6 +25,8 @@ export class ApiError extends Error {
   readonly code: ApiErrorCode;
   readonly attemptsRemaining?: number;
   readonly lockedUntil?: string;
+  readonly field?: ApiErrorBody['field'];
+  readonly dailyRemaining?: number;
 
   constructor(status: number, body: ApiErrorBody) {
     super(body.message);
@@ -23,12 +35,15 @@ export class ApiError extends Error {
     this.code = body.code;
     this.attemptsRemaining = body.attemptsRemaining;
     this.lockedUntil = body.lockedUntil;
+    this.field = body.field;
+    this.dailyRemaining = body.dailyRemaining;
   }
 }
 
 interface RequestOptions {
   method?: 'GET' | 'POST';
   body?: unknown;
+  headers?: Record<string, string>;
 }
 
 let authToken: string | null = null;
@@ -62,7 +77,7 @@ async function toApiError(response: Response): Promise<ApiError> {
 
 async function send(path: string, options: RequestOptions, accept: string): Promise<Response> {
   const { method = 'GET', body } = options;
-  const headers: Record<string, string> = { Accept: accept };
+  const headers: Record<string, string> = { ...options.headers, Accept: accept };
 
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (authToken) headers.Authorization = `Bearer ${authToken}`;

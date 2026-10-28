@@ -94,4 +94,44 @@ describe('apiClient', () => {
 
     await expect(logout()).resolves.toBeUndefined();
   });
+
+  it('sends extra headers', async () => {
+    let received: string | null = null;
+    server.use(
+      http.post('/api/probe', ({ request }) => {
+        received = request.headers.get('Idempotency-Key');
+        return HttpResponse.json({});
+      }),
+    );
+
+    await apiRequest('/api/probe', { method: 'POST', headers: { 'Idempotency-Key': 'key-1' } });
+
+    expect(received).toBe('key-1');
+  });
+
+  it('keeps the field and the daily limit left on transfer errors', async () => {
+    server.use(
+      http.post('/api/probe', () =>
+        HttpResponse.json(
+          {
+            code: 'DAILY_LIMIT_EXCEEDED',
+            message: 'Over the limit.',
+            field: 'amount',
+            dailyRemaining: 50000,
+          },
+          { status: 422 },
+        ),
+      ),
+    );
+
+    const error = await captureError(apiRequest('/api/probe', { method: 'POST', body: {} }));
+
+    expect(error).toMatchObject({
+      status: 422,
+      code: 'DAILY_LIMIT_EXCEEDED',
+      message: 'Over the limit.',
+      field: 'amount',
+      dailyRemaining: 50000,
+    });
+  });
 });

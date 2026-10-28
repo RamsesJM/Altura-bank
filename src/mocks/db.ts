@@ -5,6 +5,7 @@ import type {
   Beneficiary,
   Transaction,
   TransferQuote,
+  TransferQuoteRequest,
   TransferReceipt,
 } from '../types/banking';
 import {
@@ -33,6 +34,7 @@ interface StoredSession {
 }
 
 export interface StoredQuote {
+  request: TransferQuoteRequest;
   quote: TransferQuote;
   otpAttempts: number;
   status: 'open' | 'used' | 'locked';
