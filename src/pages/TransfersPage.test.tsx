@@ -34,11 +34,15 @@ describe('TransfersPage', () => {
   });
 
   it('starts on the first step', async () => {
-    await renderTransfers();
+    const { user } = await renderTransfers();
 
     expect(screen.getByRole('heading', { level: 1, name: 'Transfers' })).toBeInTheDocument();
-    expect(screen.getByText('Step 1 of 4')).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'New transfer' })).toBeInTheDocument();
+    expect(screen.getByText('Step 1 of 3')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Someone else' }));
+
+    expect(screen.getByText('Step 1 of 4')).toBeInTheDocument();
   });
 
   it('labels the transfer fields', async () => {
