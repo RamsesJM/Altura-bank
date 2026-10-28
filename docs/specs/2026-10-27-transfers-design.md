@@ -51,7 +51,7 @@ Users can see balances and their full history but cannot move money. This stage 
 
 ## API contract
 
-All endpoints require a session and use the existing `ApiError` shape. New error codes: `INSUFFICIENT_FUNDS`, `LIMIT_EXCEEDED`, `DAILY_LIMIT_EXCEEDED`, `SAME_ACCOUNT`, `ACCOUNT_NOT_FOUND`, `OWN_ACCOUNT`, `QUOTE_EXPIRED`, `QUOTE_USED`, `INVALID_OTP`, `OTP_LOCKED`. Error bodies may include `field` (the form field the error belongs to) and `dailyRemaining` (cents in DOP).
+All endpoints require a session and use the existing `ApiError` shape. New error codes: `INSUFFICIENT_FUNDS`, `LIMIT_EXCEEDED`, `DAILY_LIMIT_EXCEEDED`, `SAME_ACCOUNT`, `ACCOUNT_NOT_FOUND`, `OWN_ACCOUNT`, `QUOTE_EXPIRED`, `QUOTE_USED`, `INVALID_OTP`, `OTP_LOCKED`. Error bodies may include `field` (the form field the error belongs to) and `dailyRemaining` (DOP, decimal like every other amount).
 
 ### `GET /api/exchange-rate`
 
@@ -113,7 +113,7 @@ interface TransferQuote {
 }
 ```
 
-Validation failures return `400 VALIDATION_ERROR` (amount, description) or the specific codes above, with `field` set to `amount`, `to` or `from`.
+Validation failures return `400 VALIDATION_ERROR` (amount, description) or the specific codes above, with `field` set to `from`, `to`, `amount` or `description`.
 
 ### `POST /api/transfers`
 
@@ -133,7 +133,7 @@ interface TransferReceipt extends Omit<TransferQuote, 'quoteId' | 'expiresAt' | 
 }
 ```
 
-Transaction descriptions: the description entered by the user when present; otherwise "Transfer to Maria P." for third parties, and "Transfer to Checking DOP ····9874" / "Transfer from Savings DOP ····4521" for own accounts.
+Transaction descriptions: the description entered by the user when present; otherwise "Transfer to Maria P." for third parties, and "Transfer to Checking DOP **** 9874" / "Transfer from Savings DOP **** 4521" for own accounts.
 
 ## Architecture
 
