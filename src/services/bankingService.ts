@@ -27,7 +27,7 @@ export function getExchangeRate(): Promise<ExchangeRate> {
 }
 
 export function getTransactionPage(params: TransactionPageParams): Promise<TransactionPage> {
-  return apiRequest<TransactionPage>(`/api/transactions${toQueryString(params)}`);
+  return apiRequest<TransactionPage>(`/api/transactions${toQueryString({ ...params })}`);
 }
 
 export function exportTransactions(filters: TransactionFilters): Promise<Blob> {

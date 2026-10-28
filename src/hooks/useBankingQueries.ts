@@ -29,10 +29,11 @@ export function useRecentTransactions() {
   });
 }
 
-export function useTransactionPage(params: TransactionPageParams) {
+export function useTransactionPage(params: TransactionPageParams, { enabled = true } = {}) {
   return useQuery({
     queryKey: queryKeys.transactionPage(params),
     queryFn: () => getTransactionPage(params),
     placeholderData: keepPreviousData,
+    enabled,
   });
 }
