@@ -18,6 +18,7 @@ export interface Transaction {
   date: string;
   description: string;
   amount: number;
+  currency: Currency;
   type: TransactionType;
 }
 

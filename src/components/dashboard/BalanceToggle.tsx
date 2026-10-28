@@ -7,9 +7,7 @@ export function BalanceToggle({ hidden, onToggle }: BalanceToggleProps) {
   return (
     <button
       type="button"
-      aria-label="Hide balances"
       aria-pressed={hidden}
-      title={hidden ? 'Show balances' : 'Hide balances'}
       onClick={onToggle}
       className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
     >
@@ -25,7 +23,7 @@ export function BalanceToggle({ hidden, onToggle }: BalanceToggleProps) {
         <circle cx="12" cy="12" r="3" />
         {hidden && <path d="M4 4l16 16" />}
       </svg>
-      <span aria-hidden="true">{hidden ? 'Show balances' : 'Hide balances'}</span>
+      <span>Hide balances</span>
     </button>
   );
 }

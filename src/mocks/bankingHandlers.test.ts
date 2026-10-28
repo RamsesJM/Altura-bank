@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Account, ExchangeRate, Transaction } from '../types/banking';
-import { DEMO_EMAIL, DEMO_PASSWORD } from './db';
+import { db, DEMO_EMAIL, DEMO_PASSWORD } from './db';
 
 const DAY_MS = 86_400_000;
 
@@ -72,9 +72,13 @@ describe('banking API mock', () => {
   });
 
   it('caps the limit at 50', async () => {
-    const all = await getTransactions('?limit=100');
-    expect(all.length).toBeGreaterThanOrEqual(30);
-    expect(all.length).toBeLessThanOrEqual(50);
+    const extra = Array.from({ length: 60 }, (_, index) => ({
+      ...db.transactions[0],
+      id: `extra-${index}`,
+    }));
+    db.transactions.push(...extra);
+
+    expect(await getTransactions('?limit=100')).toHaveLength(50);
   });
 
   it.each(['abc', '0', '-3'])('falls back to 20 for an invalid limit (%s)', async (limit) => {
@@ -89,6 +93,17 @@ describe('banking API mock', () => {
       const time = Date.parse(transaction.date);
       expect(time).toBeLessThanOrEqual(now);
       expect(time).toBeGreaterThanOrEqual(now - 60 * DAY_MS);
+    }
+  });
+
+  it('gives every transaction the currency of its account', async () => {
+    const token = await signIn();
+    const { accounts }: { accounts: Account[] } = await (await get('/api/accounts', token)).json();
+    const currencies = new Map(accounts.map((account) => [account.id, account.currency]));
+    const transactions = await getTransactions('?limit=50');
+
+    for (const transaction of transactions) {
+      expect(transaction.currency).toBe(currencies.get(transaction.accountId));
     }
   });
 

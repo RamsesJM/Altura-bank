@@ -26,7 +26,7 @@ function TransactionItem({
   account: Account | undefined;
   hidden: boolean;
 }) {
-  const currency = account?.currency ?? 'DOP';
+  const { currency } = transaction;
   const isCredit = transaction.type === 'credit';
 
   return (

@@ -48,12 +48,15 @@ const TEMPLATES: Template[] = [
 ];
 
 export function createTransactions(now: number): Transaction[] {
+  const currencies = new Map(createAccounts().map((account) => [account.id, account.currency]));
+
   return TEMPLATES.map(([daysAgo, accountId, description, amount, type], index) => ({
     id: `txn-${String(index + 1).padStart(3, '0')}`,
     accountId,
     date: new Date(now - daysAgo * DAY_MS - (index % 8) * 3_600_000).toISOString(),
     description,
     amount,
+    currency: currencies.get(accountId) ?? 'DOP',
     type,
   }));
 }

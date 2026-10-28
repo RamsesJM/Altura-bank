@@ -1,6 +1,7 @@
-import { screen, within } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import { delay, http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
+import { queryKeys } from '../hooks/useBankingQueries';
 import { db } from '../mocks/db';
 import { server } from '../mocks/server';
 import { renderApp } from '../test/renderApp';
@@ -149,5 +150,50 @@ describe('DashboardPage', () => {
       'aria-pressed',
       'true',
     );
+  });
+
+  it('shows dollar transactions in dollars even when accounts fail to load', async () => {
+    server.use(http.get('/api/accounts', () => HttpResponse.json({}, { status: 500 })));
+    await renderDashboard();
+
+    const recent = await screen.findByRole('region', { name: 'Recent transactions' });
+    const netflix = (await within(recent).findByText('Netflix subscription')).closest('li');
+
+    expect(netflix).toHaveTextContent('US$15.49');
+    expect(netflix).not.toHaveTextContent('RD$15.49');
+  });
+
+  it('keeps loaded data on screen when a background refresh fails', async () => {
+    const { queryClient } = await renderDashboard();
+    await screen.findByText('RD$327,166.62');
+    await within(section('Recent transactions')).findAllByRole('listitem');
+
+    server.use(
+      http.get('/api/accounts', () => HttpResponse.json({}, { status: 500 })),
+      http.get('/api/transactions', () => HttpResponse.json({}, { status: 500 })),
+    );
+    await act(async () => {
+      await queryClient.refetchQueries();
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    });
+
+    expect(queryClient.getQueryState(queryKeys.accounts)?.status).toBe('error');
+    expect(queryClient.getQueryState(queryKeys.transactions(5))?.status).toBe('error');
+    expect(screen.getByText('RD$327,166.62')).toBeInTheDocument();
+    expect(within(section('Your accounts')).getByText('US$2,350.75')).toBeInTheDocument();
+    expect(within(section('Recent transactions')).getAllByRole('listitem')).toHaveLength(5);
+    expect(screen.queryByText("We couldn't load your accounts.")).not.toBeInTheDocument();
+    expect(screen.queryByText("We couldn't load your transactions.")).not.toBeInTheDocument();
+  });
+
+  it('keeps the visible toggle label equal to its accessible name', async () => {
+    const { user } = await renderDashboard();
+    const toggle = screen.getByRole('button', { name: 'Hide balances' });
+
+    await user.click(toggle);
+
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    expect(toggle).toHaveTextContent('Hide balances');
+    expect(toggle).not.toHaveTextContent('Show balances');
   });
 });

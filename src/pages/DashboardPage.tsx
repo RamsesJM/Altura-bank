@@ -34,25 +34,25 @@ export function DashboardPage() {
   const accounts = accountsQuery.data ?? [];
 
   let totalState: TotalBalanceState;
-  if (accountsQuery.isError) {
-    totalState = { status: 'unavailable' };
-  } else if (exchangeRateQuery.isError) {
-    totalState = { status: 'rate-error', onRetry: () => void exchangeRateQuery.refetch() };
-  } else if (accountsQuery.data && exchangeRateQuery.data) {
+  if (accountsQuery.data && exchangeRateQuery.data) {
     totalState = {
       status: 'ready',
       total: totalBalanceInDop(accountsQuery.data, exchangeRateQuery.data.usdToDop),
       exchangeRate: exchangeRateQuery.data,
     };
+  } else if (accountsQuery.isError) {
+    totalState = { status: 'unavailable' };
+  } else if (exchangeRateQuery.isError) {
+    totalState = { status: 'rate-error', onRetry: () => void exchangeRateQuery.refetch() };
   } else {
     totalState = { status: 'loading' };
   }
 
   let transactionsState: RecentTransactionsState;
-  if (transactionsQuery.isError) {
-    transactionsState = { status: 'error', onRetry: () => void transactionsQuery.refetch() };
-  } else if (transactionsQuery.data) {
+  if (transactionsQuery.data) {
     transactionsState = { status: 'ready', transactions: transactionsQuery.data };
+  } else if (transactionsQuery.isError) {
+    transactionsState = { status: 'error', onRetry: () => void transactionsQuery.refetch() };
   } else {
     transactionsState = { status: 'loading' };
   }
@@ -103,7 +103,7 @@ export function DashboardPage() {
             </div>
           )}
 
-          {accountsQuery.isError && (
+          {accountsQuery.isError && !accountsQuery.data && (
             <div className="rounded-xl border border-slate-200 bg-white p-5">
               <SectionError
                 message="We couldn't load your accounts."
