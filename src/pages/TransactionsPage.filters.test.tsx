@@ -33,7 +33,8 @@ describe('TransactionsPage filters and export', () => {
   it('filters by account', async () => {
     const { user } = await renderHistory();
 
-    await user.selectOptions(await screen.findByLabelText('Account'), 'acc-usd-savings');
+    await screen.findByRole('option', { name: /Savings USD/ });
+    await user.selectOptions(screen.getByLabelText('Account'), 'acc-usd-savings');
 
     expect(
       await screen.findByText(summary(count({ accountId: 'acc-usd-savings' }))),
