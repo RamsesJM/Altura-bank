@@ -67,9 +67,15 @@ The login page also has a **Use demo account** button that fills both fields.
 - Bottom navigation bar on phones, within thumb reach and clear of the iPhone home indicator
 - 16 px form fields on phones, so iOS does not zoom in when a field is focused
 
+### Installable app
+
+- Install it from Chrome or Edge, or add it to the home screen on Android and iPhone, with its own icon and window
+- No offline cache: account data is never stored on the device, and the only service worker is the mock API's
+- Icons are drawn by a small Node script (`scripts/generate-icons.mjs`), so they can be rebuilt from code
+
 ### Quality
 
-- 283 automated tests covering the mock API, the API client, routing, the login form, the session timeout, the dashboard, the transaction history and transfers
+- 287 automated tests covering the mock API, the API client, routing, the login form, the session timeout, the dashboard, the transaction history and transfers
 - Continuous integration: lint, tests and a production build run on GitHub Actions for every push and pull request, and `main` only accepts pull requests that pass
 - Strict TypeScript, ESLint and Prettier
 - Accessible forms: labels, `aria-invalid`, error announcements and keyboard-friendly dialogs
@@ -132,6 +138,8 @@ src/
 └── utils/        Money and currency conversion, date formatting, balance calculation and file downloads
 ```
 
+`scripts/generate-icons.mjs` draws the favicon and app icons into `public/`.
+
 Design decisions are documented in [`docs/specs`](docs/specs).
 
 ## Getting started
@@ -162,7 +170,7 @@ npm run dev
 - [x] Continuous integration with GitHub Actions
 - [x] Mobile support: touch activity detection, locked-device session handling and mobile-first polish
 - [x] Deployment to Vercel with a live demo
-- [ ] Installable Progressive Web App
+- [x] Installable Progressive Web App
 
 ## Author
 
