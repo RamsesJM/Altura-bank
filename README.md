@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/RamsesJM/altura-bank/actions/workflows/ci.yml/badge.svg)](https://github.com/RamsesJM/altura-bank/actions/workflows/ci.yml)
 
+**[Live demo](https://altura-bank.vercel.app)** · sign in with the demo account below.
+
 Online banking demo built with React and TypeScript. The goal is to reproduce the parts of a banking front end where details matter most: authentication, session security, account data, form validation and error handling, all backed by automated tests.
 
 > Altura Bank is a fictional bank created for portfolio purposes.
@@ -67,7 +69,7 @@ The login page also has a **Use demo account** button that fills both fields.
 
 ### Quality
 
-- 280 automated tests covering the mock API, the API client, routing, the login form, the session timeout, the dashboard, the transaction history and transfers
+- 283 automated tests covering the mock API, the API client, routing, the login form, the session timeout, the dashboard, the transaction history and transfers
 - Continuous integration: lint, tests and a production build run on GitHub Actions for every push and pull request, and `main` only accepts pull requests that pass
 - Strict TypeScript, ESLint and Prettier
 - Accessible forms: labels, `aria-invalid`, error announcements and keyboard-friendly dialogs
@@ -159,7 +161,7 @@ npm run dev
 - [x] Transfers
 - [x] Continuous integration with GitHub Actions
 - [x] Mobile support: touch activity detection, locked-device session handling and mobile-first polish
-- [ ] Deployment to Vercel with a live demo
+- [x] Deployment to Vercel with a live demo
 - [ ] Installable Progressive Web App
 
 ## Author
