@@ -5,6 +5,7 @@ import { PublicOnlyRoute } from '../components/PublicOnlyRoute';
 import { DashboardPage } from '../pages/DashboardPage';
 import { LoginPage } from '../pages/LoginPage';
 import { TransactionsPage } from '../pages/TransactionsPage';
+import { TransfersPage } from '../pages/TransfersPage';
 
 export function AppRoutes() {
   return (
@@ -16,6 +17,7 @@ export function AppRoutes() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/transactions" element={<TransactionsPage />} />
+          <Route path="/transfers" element={<TransfersPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Route>
