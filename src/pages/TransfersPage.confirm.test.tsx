@@ -161,7 +161,9 @@ describe('TransfersPage confirmation', () => {
     await user.click(screen.getByRole('link', { name: 'View transactions' }));
     expect(await screen.findByText('Transfer to Checking DOP **** 9874')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('link', { name: 'Dashboard' }));
+    await user.click(
+      within(screen.getByTestId('nav-desktop')).getByRole('link', { name: 'Dashboard' }),
+    );
     expect(await screen.findByText('RD$143,730.00')).toBeInTheDocument();
   });
 

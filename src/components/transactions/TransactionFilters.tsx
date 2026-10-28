@@ -21,7 +21,7 @@ interface TransactionFiltersProps {
 }
 
 const fieldClass =
-  'min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:border-brand-600 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-600 aria-invalid:border-red-500';
+  'min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 sm:text-sm focus-visible:border-brand-600 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-600 aria-invalid:border-red-500';
 
 const labelClass = 'mb-1 block text-xs font-medium text-slate-600';
 
