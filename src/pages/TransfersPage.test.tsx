@@ -22,7 +22,7 @@ async function renderTransfers() {
   server.events.on('request:start', countQuotes);
   await seedSession();
   const utils = renderApp('/transfers');
-  await screen.findByRole('option', { name: /Savings DOP \*\*\*\* 4521/ });
+  await screen.findByLabelText('From');
   return utils;
 }
 
