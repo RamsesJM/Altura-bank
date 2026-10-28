@@ -64,7 +64,7 @@ describe('SessionManager', () => {
     await renderDashboard();
 
     await advance(240_000);
-    fireEvent.mouseMove(window);
+    fireEvent.pointerMove(window);
     await advance(1_000);
 
     expect(warningDialog()).toBeInTheDocument();
