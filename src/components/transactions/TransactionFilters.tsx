@@ -16,6 +16,7 @@ interface TransactionFiltersProps {
   rangeErrorId?: string;
   onChange: (key: keyof Filters, value: string | undefined) => void;
   onClear: () => void;
+  onSearchDraftChange: (value: string) => void;
 }
 
 const fieldClass =
@@ -30,12 +31,13 @@ export function TransactionFilters({
   rangeErrorId,
   onChange,
   onClear,
+  onSearchDraftChange,
 }: TransactionFiltersProps) {
   const id = useId();
   const [search, setSearch] = useState(filters.q ?? '');
   const [syncedQuery, setSyncedQuery] = useState(filters.q);
   const debouncedSearch = useDebouncedValue(search, SEARCH_DELAY_MS);
-  const latest = useRef({ query: filters.q, onChange });
+  const latest = useRef({ query: filters.q, onChange, onSearchDraftChange });
 
   if (filters.q !== syncedQuery) {
     setSyncedQuery(filters.q);
@@ -43,8 +45,12 @@ export function TransactionFilters({
   }
 
   useEffect(() => {
-    latest.current = { query: filters.q, onChange };
+    latest.current = { query: filters.q, onChange, onSearchDraftChange };
   });
+
+  useEffect(() => {
+    latest.current.onSearchDraftChange(search);
+  }, [search]);
 
   useEffect(() => {
     const next = debouncedSearch.trim() || undefined;
@@ -136,14 +142,15 @@ export function TransactionFilters({
         />
       </div>
 
-      <button
-        type="button"
-        onClick={onClear}
-        disabled={!hasFilters}
-        className="min-h-11 rounded-lg px-4 text-sm font-medium text-brand-700 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent"
-      >
-        Clear filters
-      </button>
+      {hasFilters && (
+        <button
+          type="button"
+          onClick={onClear}
+          className="min-h-11 rounded-lg px-4 text-sm font-medium text-brand-700 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        >
+          Clear filters
+        </button>
+      )}
     </div>
   );
 }

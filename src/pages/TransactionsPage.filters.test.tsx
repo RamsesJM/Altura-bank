@@ -158,4 +158,40 @@ describe('TransactionsPage filters and export', () => {
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('q=netflix'));
     expect(search).toHaveValue('netflix ');
   });
+
+  it('ignores an unknown account in the URL', async () => {
+    await renderHistory('/transactions?account=bogus');
+
+    expect(
+      await screen.findByText(`Showing 1–10 of ${db.transactions.length} transactions`),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Account')).toHaveValue('');
+    await waitFor(() => expect(screen.getByTestId('location')).not.toHaveTextContent('account='));
+  });
+
+  it('exports the search being typed', async () => {
+    const { user } = await renderHistory();
+    await screen.findByText(summary(db.transactions.length));
+
+    await user.type(screen.getByLabelText('Search transactions'), 'netflix');
+    await user.click(screen.getByRole('button', { name: 'Export CSV' }));
+
+    await waitFor(() => expect(saveBlob).toHaveBeenCalledOnce());
+    const [blob] = saveBlob.mock.calls[0] as [Blob, string];
+    expect((await blob.text()).split('\r\n')).toHaveLength(count({ q: 'netflix' }) + 1);
+  });
+
+  it('shows Clear filters only when a filter is active', async () => {
+    await renderHistory();
+    await screen.findByText(summary(db.transactions.length));
+
+    expect(screen.queryByRole('button', { name: 'Clear filters' })).not.toBeInTheDocument();
+  });
+
+  it('shows Clear filters when a filter is set', async () => {
+    await renderHistory('/transactions?type=credit');
+    await screen.findByText(summary(count({ type: 'credit' })));
+
+    expect(screen.getAllByRole('button', { name: 'Clear filters' })).toHaveLength(1);
+  });
 });

@@ -42,14 +42,17 @@ export function useTransactionFilters() {
   const hasFilters = Object.values(filters).some(Boolean);
 
   const setFilter = useCallback(
-    (key: keyof TransactionFilters, value: string | undefined) => {
-      setParams((current) => {
-        const next = new URLSearchParams(current);
-        if (value) next.set(URL_KEYS[key], value);
-        else next.delete(URL_KEYS[key]);
-        next.delete('page');
-        return next;
-      });
+    (key: keyof TransactionFilters, value: string | undefined, { replace = false } = {}) => {
+      setParams(
+        (current) => {
+          const next = new URLSearchParams(current);
+          if (value) next.set(URL_KEYS[key], value);
+          else next.delete(URL_KEYS[key]);
+          next.delete('page');
+          return next;
+        },
+        { replace },
+      );
     },
     [setParams],
   );
