@@ -24,6 +24,8 @@ export interface Transaction {
 
 export interface ExchangeRate {
   usdToDop: number;
+  buy: number;
+  sell: number;
   date: string;
 }
 

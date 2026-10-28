@@ -2,7 +2,12 @@ import type { Account, ExchangeRate, Transaction, TransactionType } from '../typ
 
 const DAY_MS = 86_400_000;
 
-export const EXCHANGE_RATE: ExchangeRate = { usdToDop: 60.83, date: '2026-10-23' };
+export const EXCHANGE_RATE: ExchangeRate = {
+  usdToDop: 60.83,
+  buy: 60.2,
+  sell: 61.4,
+  date: '2026-10-23',
+};
 
 export function createAccounts(): Account[] {
   return [

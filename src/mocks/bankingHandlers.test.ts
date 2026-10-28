@@ -57,7 +57,7 @@ describe('banking API mock', () => {
     const token = await signIn();
     const body: ExchangeRate = await (await get('/api/exchange-rate', token)).json();
 
-    expect(body).toEqual({ usdToDop: 60.83, date: '2026-10-23' });
+    expect(body).toEqual({ usdToDop: 60.83, buy: 60.2, sell: 61.4, date: '2026-10-23' });
   });
 
   it('returns transactions newest first', async () => {
