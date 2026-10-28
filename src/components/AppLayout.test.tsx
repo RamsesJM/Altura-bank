@@ -52,4 +52,26 @@ describe('AppLayout', () => {
       await screen.findByRole('heading', { name: 'Sign in to Altura Bank' }),
     ).toBeInTheDocument();
   });
+
+  it('marks Transfers as the current page on /transfers', async () => {
+    await seedSession();
+    renderApp('/transfers');
+
+    const navigation = await screen.findByRole('navigation', { name: 'Main' });
+
+    expect(within(navigation).getByRole('link', { name: 'Transfers' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
+  it('opens transfers from the dashboard', async () => {
+    await seedSession();
+    const { user } = renderApp('/');
+
+    await user.click(await screen.findByRole('link', { name: 'New transfer' }));
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Transfers' })).toBeInTheDocument();
+    expect(screen.getByTestId('location')).toHaveTextContent('/transfers');
+  });
 });

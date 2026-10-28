@@ -5,6 +5,7 @@ import { BrandLogo } from './BrandLogo';
 const navigation = [
   { to: '/', label: 'Dashboard', end: true },
   { to: '/transactions', label: 'Transactions', end: false },
+  { to: '/transfers', label: 'Transfers', end: false },
 ];
 
 export function AppLayout() {

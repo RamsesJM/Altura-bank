@@ -35,6 +35,12 @@ export function TransactionsPage() {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const rangeErrorId = useId();
   const [filtersKey, setFiltersKey] = useState(0);
+  const [focusSearch, setFocusSearch] = useState(false);
+  const searchDraft = useRef(filters.q ?? '');
+  const accounts = accountsQuery.data;
+  const unknownAccount = Boolean(
+    accounts && filters.accountId && !accounts.some((account) => account.id === filters.accountId),
+  );
 
   const data = invalidRange ? undefined : transactionsQuery.data;
   const isBusy =
@@ -48,9 +54,18 @@ export function TransactionsPage() {
     }
   }, [data, isPlaceholderData, page, setPage]);
 
+  useEffect(() => {
+    if (unknownAccount) setFilter('accountId', undefined, { replace: true });
+  }, [unknownAccount, setFilter]);
+
+  function exportCurrentView() {
+    exportMutation.mutate({ ...filters, q: searchDraft.current.trim() || undefined });
+  }
+
   function clearAllFilters() {
     clearFilters();
     setFiltersKey((key) => key + 1);
+    setFocusSearch(true);
   }
 
   function changePage(nextPage: number) {
@@ -64,7 +79,7 @@ export function TransactionsPage() {
         <h1 className="text-2xl font-semibold text-slate-900">Transactions</h1>
         <button
           type="button"
-          onClick={() => exportMutation.mutate(filters)}
+          onClick={exportCurrentView}
           disabled={invalidRange || exportMutation.isPending}
           aria-busy={exportMutation.isPending}
           className="min-h-11 rounded-lg bg-brand-600 px-4 text-sm font-medium text-white transition hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
@@ -90,6 +105,10 @@ export function TransactionsPage() {
         rangeErrorId={invalidRange ? rangeErrorId : undefined}
         onChange={setFilter}
         onClear={clearAllFilters}
+        focusSearchOnMount={focusSearch}
+        onSearchDraftChange={(value) => {
+          searchDraft.current = value;
+        }}
       />
 
       <section
