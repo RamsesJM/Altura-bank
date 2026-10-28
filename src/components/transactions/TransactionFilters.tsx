@@ -17,6 +17,7 @@ interface TransactionFiltersProps {
   onChange: (key: keyof Filters, value: string | undefined) => void;
   onClear: () => void;
   onSearchDraftChange: (value: string) => void;
+  focusSearchOnMount?: boolean;
 }
 
 const fieldClass =
@@ -32,11 +33,13 @@ export function TransactionFilters({
   onChange,
   onClear,
   onSearchDraftChange,
+  focusSearchOnMount = false,
 }: TransactionFiltersProps) {
   const id = useId();
   const [search, setSearch] = useState(filters.q ?? '');
   const [syncedQuery, setSyncedQuery] = useState(filters.q);
   const debouncedSearch = useDebouncedValue(search, SEARCH_DELAY_MS);
+  const searchRef = useRef<HTMLInputElement>(null);
   const latest = useRef({ query: filters.q, onChange, onSearchDraftChange });
 
   if (filters.q !== syncedQuery) {
@@ -56,6 +59,10 @@ export function TransactionFilters({
     const next = debouncedSearch.trim() || undefined;
     if (next !== latest.current.query) latest.current.onChange('q', next);
   }, [debouncedSearch]);
+
+  useEffect(() => {
+    if (focusSearchOnMount) searchRef.current?.focus();
+  }, [focusSearchOnMount]);
 
   const invalidRange = Boolean(rangeErrorId);
 
@@ -133,6 +140,7 @@ export function TransactionFilters({
           Search transactions
         </label>
         <input
+          ref={searchRef}
           id={`${id}-search`}
           type="search"
           value={search}

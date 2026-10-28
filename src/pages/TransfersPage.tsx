@@ -101,8 +101,9 @@ export function TransfersPage() {
   useEffect(() => {
     if (previousStep.current === step) return;
     previousStep.current = step;
+    if (step === 'form' && returnedError?.field) return;
     headingRef.current?.focus();
-  }, [step]);
+  }, [step, returnedError]);
 
   function changeDraft(next: TransferDraft) {
     quoteMutation.reset();

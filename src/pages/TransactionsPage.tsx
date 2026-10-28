@@ -35,6 +35,7 @@ export function TransactionsPage() {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const rangeErrorId = useId();
   const [filtersKey, setFiltersKey] = useState(0);
+  const [focusSearch, setFocusSearch] = useState(false);
   const searchDraft = useRef(filters.q ?? '');
   const accounts = accountsQuery.data;
   const unknownAccount = Boolean(
@@ -64,6 +65,7 @@ export function TransactionsPage() {
   function clearAllFilters() {
     clearFilters();
     setFiltersKey((key) => key + 1);
+    setFocusSearch(true);
   }
 
   function changePage(nextPage: number) {
@@ -103,6 +105,7 @@ export function TransactionsPage() {
         rangeErrorId={invalidRange ? rangeErrorId : undefined}
         onChange={setFilter}
         onClear={clearAllFilters}
+        focusSearchOnMount={focusSearch}
         onSearchDraftChange={(value) => {
           searchDraft.current = value;
         }}

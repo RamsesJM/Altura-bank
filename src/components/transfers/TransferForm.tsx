@@ -114,6 +114,12 @@ export function TransferForm({
     pendingFocus.current = null;
   });
 
+  useEffect(() => {
+    const field = apiError?.field;
+    if (!field) return;
+    document.querySelector<HTMLElement>(`[aria-describedby~="${id}-${field}-error"]`)?.focus();
+  }, [apiError, id]);
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextErrors = validate(draft, accounts);

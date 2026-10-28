@@ -336,10 +336,10 @@ export const handlers = [
       return errorResponse(400, { code: 'VALIDATION_ERROR', message: 'Missing idempotency key.' });
     }
 
+    const body = (await readJson(request)) as Partial<TransferConfirmRequest>;
+
     const previous = db.transfers.find((transfer) => transfer.idempotencyKey === key);
     if (previous) return HttpResponse.json(previous.receipt);
-
-    const body = (await readJson(request)) as Partial<TransferConfirmRequest>;
     const stored = db.quotes[String(body.quoteId ?? '')];
     const now = Date.now();
 

@@ -313,4 +313,22 @@ describe('transfers API mock', () => {
 
     expect((await limits()).dailyRemaining).toBe(249000);
   });
+
+  it('returns the receipt to two simultaneous requests with the same key', async () => {
+    const token = await signIn();
+    const { quoteId } = await quote(token, own('1000'));
+    const key = crypto.randomUUID();
+
+    const responses = await Promise.all([
+      confirm(token, { quoteId }, key),
+      confirm(token, { quoteId }, key),
+    ]);
+    const [first, second]: TransferReceipt[] = await Promise.all(
+      responses.map((response) => response.json()),
+    );
+
+    expect(responses.map((response) => response.status)).toEqual([200, 200]);
+    expect(second).toEqual(first);
+    expect(balance('acc-dop-savings')).toBe(144230.5);
+  });
 });

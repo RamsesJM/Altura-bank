@@ -195,4 +195,13 @@ describe('TransactionsPage filters and export', () => {
 
     expect(screen.getAllByRole('button', { name: 'Clear filters' })).toHaveLength(1);
   });
+
+  it('keeps keyboard focus in the filters after clearing them', async () => {
+    const { user } = await renderHistory('/transactions?type=credit');
+    await screen.findByText(summary(count({ type: 'credit' })));
+
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }));
+
+    await waitFor(() => expect(screen.getByLabelText('Search transactions')).toHaveFocus());
+  });
 });

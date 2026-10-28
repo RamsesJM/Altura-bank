@@ -196,6 +196,18 @@ describe('TransfersPage', () => {
     expect(quoteRequests).toBe(1);
   });
 
+  it('moves focus to the field the server rejected', async () => {
+    const { user } = await renderTransfers();
+
+    await user.click(screen.getByRole('tab', { name: 'Someone else' }));
+    await user.selectOptions(await screen.findByLabelText('Beneficiary'), 'ben-maria');
+    await user.type(screen.getByLabelText('Amount'), '100000.01');
+    await user.click(review());
+
+    await screen.findByText('Transfers to other people are limited to RD$100,000.00 each.');
+    await waitFor(() => expect(screen.getByLabelText('Amount')).toHaveFocus());
+  });
+
   it('moves to the review step with a quote', async () => {
     const { user } = await renderTransfers();
 
