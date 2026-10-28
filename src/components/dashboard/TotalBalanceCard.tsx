@@ -22,6 +22,7 @@ export function TotalBalanceCard({ state, hidden }: TotalBalanceCardProps) {
   return (
     <section
       aria-labelledby="total-balance-heading"
+      aria-busy={state.status === 'loading'}
       className="rounded-2xl bg-brand-700 p-6 text-white shadow-lg sm:p-8"
     >
       <h2 id="total-balance-heading" className="text-sm font-medium text-brand-100">

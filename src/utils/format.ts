@@ -15,8 +15,9 @@ export function currencySymbol(currency: Currency): 'RD$' | 'US$' {
 }
 
 export function formatCurrency(amount: number, currency: Currency): string {
-  const sign = amount < 0 ? '-' : '';
-  return `${sign}${currencySymbol(currency)}${amountFormatter.format(Math.abs(amount))}`;
+  const rounded = Math.round(Math.abs(amount) * 100) / 100;
+  const sign = amount < 0 && rounded !== 0 ? '-' : '';
+  return `${sign}${currencySymbol(currency)}${amountFormatter.format(rounded)}`;
 }
 
 export function formatHiddenAmount(currency: Currency): string {

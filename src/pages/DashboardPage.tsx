@@ -90,7 +90,7 @@ export function DashboardPage() {
 
         <TotalBalanceCard state={totalState} hidden={hidden} />
 
-        <section aria-labelledby="accounts-heading">
+        <section aria-labelledby="accounts-heading" aria-busy={accountsQuery.isPending}>
           <h2 id="accounts-heading" className="mb-3 text-lg font-semibold text-slate-900">
             Your accounts
           </h2>

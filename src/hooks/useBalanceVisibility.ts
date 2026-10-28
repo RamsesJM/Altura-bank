@@ -22,12 +22,10 @@ export function useBalanceVisibility() {
   const [hidden, setHidden] = useState(readPreference);
 
   const toggle = useCallback(() => {
-    setHidden((current) => {
-      const next = !current;
-      savePreference(next);
-      return next;
-    });
-  }, []);
+    const next = !hidden;
+    savePreference(next);
+    setHidden(next);
+  }, [hidden]);
 
   return { hidden, toggle };
 }

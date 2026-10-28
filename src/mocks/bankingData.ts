@@ -40,11 +40,12 @@ const TEMPLATES: Template[] = [
   [36, 'acc-dop-checking', 'Claro mobile plan', 1499, 'debit'],
   [38, 'acc-usd-savings', 'Netflix subscription', 15.49, 'debit'],
   [41, 'acc-dop-checking', 'Credit card payment', 12350, 'debit'],
+  [44, 'acc-dop-savings', 'Payroll deposit', 68500, 'credit'],
   [44, 'acc-usd-savings', 'Freelance payment', 650, 'credit'],
   [47, 'acc-dop-checking', 'Restaurante Adrian Tropical', 1840, 'debit'],
   [50, 'acc-dop-savings', 'Transfer from Juan Rodriguez', 4000, 'credit'],
   [54, 'acc-dop-checking', 'Shell gas station', 2500, 'debit'],
-  [58, 'acc-dop-savings', 'Payroll deposit', 68500, 'credit'],
+  [59, 'acc-dop-savings', 'Payroll deposit', 68500, 'credit'],
 ];
 
 export function createTransactions(now: number): Transaction[] {
@@ -53,7 +54,7 @@ export function createTransactions(now: number): Transaction[] {
   return TEMPLATES.map(([daysAgo, accountId, description, amount, type], index) => ({
     id: `txn-${String(index + 1).padStart(3, '0')}`,
     accountId,
-    date: new Date(now - daysAgo * DAY_MS - (index % 8) * 3_600_000).toISOString(),
+    date: new Date(now - daysAgo * DAY_MS - (daysAgo % 8) * 3_600_000).toISOString(),
     description,
     amount,
     currency: currencies.get(accountId) ?? 'DOP',

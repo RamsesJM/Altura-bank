@@ -63,6 +63,7 @@ export function RecentTransactions({ state, accounts, hidden }: RecentTransactio
   return (
     <section
       aria-labelledby="recent-transactions-heading"
+      aria-busy={state.status === 'loading'}
       className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
     >
       <h2 id="recent-transactions-heading" className="text-lg font-semibold text-slate-900">
